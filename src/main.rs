@@ -24,8 +24,12 @@ fn main() {
             println!("File content:\n{}", content);
             let pairs = Grammar::parse(Rule::add, &content);
             match pairs {
-                Ok(_) => println!("Success!"),
-                Err(_) => println!("Error!"),
+                Ok(pairs) => {
+                    for pair in pairs {
+                        println!("{}", pair);
+                    }
+                }
+                Err(e) => println!("Error!\n{}", e),
             }
         }
         Err(e) => println!("Error {}!", e),
