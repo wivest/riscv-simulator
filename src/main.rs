@@ -1,9 +1,11 @@
 use grammar::{Grammar, Rule};
+use language::Language;
 use pest::Parser;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
 mod grammar;
+mod language;
 
 fn open_file(path: &str) -> Result<String, Error> {
     let mut file = OpenOptions::new()
@@ -25,9 +27,7 @@ fn main() {
             let pairs = Grammar::parse(Rule::program, &content);
             match pairs {
                 Ok(pairs) => {
-                    for pair in pairs {
-                        println!("{}", pair);
-                    }
+                    let language = Language::new(pairs);
                 }
                 Err(e) => println!("Error!\n{}", e),
             }
