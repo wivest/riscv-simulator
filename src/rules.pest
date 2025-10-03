@@ -1,2 +1,9 @@
+program = { SOI ~ instruction* ~ EOI }
+
+instruction = { add }
+
 add      =  { "add" ~ register ~ register ~ register }
-register = ${ WHITE_SPACE* ~ "x" ~ NUMBER }
+register = ${ "x" ~ NUMBER }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT    = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* }
