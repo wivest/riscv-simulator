@@ -23,7 +23,12 @@ fn main() {
 
     match open_file(path) {
         Ok(content) => {
-            println!("File content:\n{}", content);
+            let pairs = Grammar::parse(Rule::program, &content).unwrap();
+            for pair in pairs {
+                for p in pair.into_inner() {
+                    println!("{}", p.as_str());
+                }
+            }
             let pairs = Grammar::parse(Rule::program, &content);
             match pairs {
                 Ok(pairs) => {
