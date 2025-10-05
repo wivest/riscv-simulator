@@ -7,6 +7,7 @@ pub struct Language {
 
 impl Language {
     pub fn new(pairs: Pairs<Rule>) -> Self {
+        let mut list = vec![];
         for pair in pairs {
             match pair.as_rule() {
                 Rule::program => {
@@ -19,6 +20,7 @@ impl Language {
                                     match i.as_rule() {
                                         Rule::add => {
                                             println!("add!");
+                                            list.push(Instruction::Add);
                                         }
                                         _ => {}
                                     }
