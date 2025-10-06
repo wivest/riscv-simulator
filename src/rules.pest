@@ -1,4 +1,4 @@
-program = { SOI ~ instruction* ~ EOI }
+program = { SOI ~ instruction* ~ EOIS }
 
 instruction = { add }
 
@@ -7,3 +7,4 @@ register = ${ "x" ~ NUMBER }
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 COMMENT    = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* }
+EOIS       = _{ !ANY }
