@@ -4,6 +4,7 @@ use pest::Parser;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
+mod chumsky_parser;
 mod grammar;
 mod language;
 
