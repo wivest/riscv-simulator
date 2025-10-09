@@ -1,10 +1,11 @@
 use chumsky::prelude::*;
 
-enum Instruction {
+#[derive(Debug)]
+pub enum Instruction {
     Add { rd: i32, rs1: i32, rs2: i32 },
 }
 
-fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
+pub fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let register = just("x")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<i32>().unwrap());

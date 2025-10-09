@@ -1,6 +1,0 @@
-program = { SOI ~ identifier* ~ EOI }
-
-identifier = ${ (!NEWLINE ~ ANY) }
-
-WHITESPACE = _{ " " | "\t" | NEWLINE }
-COMMENT    = _{ ("//" | "#") ~ (!NEWLINE ~ ANY)* }

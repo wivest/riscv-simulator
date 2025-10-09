@@ -5,5 +5,3 @@ edition = "2024"
 
 [dependencies]
 chumsky = "0.11.1"
-pest = "2.8.2"
-pest_derive = "2.8.2"
