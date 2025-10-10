@@ -8,8 +8,8 @@ pub enum Instruction {
 pub fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let register = just("x")
         .ignore_then(text::int(10))
-        .padded()
-        .map(|s: &'src str| s.parse::<i32>().unwrap());
+        .map(|s: &'src str| s.parse::<i32>().unwrap())
+        .padded();
 
     let add_parser = just("add")
         .ignore_then(register.separated_by(just(",")).collect_exactly::<[_; 3]>())
@@ -17,7 +17,8 @@ pub fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
             rd: rd,
             rs1: rs1,
             rs2: rs2,
-        });
+        })
+        .padded();
 
     add_parser
 }

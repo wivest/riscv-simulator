@@ -18,7 +18,7 @@ fn open_file(path: &str) -> Result<String, Error> {
 fn main() {
     let path = "examples/source.asm";
 
-    let to_parse = "add x1, x2, x3";
+    let to_parse = " add x1  ,x2, x3 ";
     let result = chumsky_parser::add().parse(to_parse);
     println!("{:?}", result.unwrap());
 }
