@@ -33,10 +33,16 @@ fn rtype<'src>(
         })
 }
 
-pub fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(just("add")).map(|rt| Instruction::Add(rt)).padded()
+fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    rtype(just("add")).map(|rt| Instruction::Add(rt))
 }
 
-pub fn sub<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(just("sub")).map(|rt| Instruction::Sub(rt)).padded()
+fn sub<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    rtype(just("sub")).map(|rt| Instruction::Sub(rt))
+}
+
+pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
+    let instruction = choice((add(), sub()));
+
+    instruction.padded().repeated().collect()
 }

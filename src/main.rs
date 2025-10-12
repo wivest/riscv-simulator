@@ -19,7 +19,7 @@ fn main() {
     let path = "examples/source.asm";
 
     if let Ok(content) = open_file(path) {
-        let result = chumsky_parser::add().parse(&content);
+        let result = chumsky_parser::program().parse(&content);
         println!("{:?}", result.unwrap());
     } else {
         println!("File error!");
