@@ -3,6 +3,7 @@ use chumsky::prelude::*;
 #[derive(Debug)]
 pub enum Instruction {
     Add(InstructionType),
+    Sub(InstructionType),
 }
 #[derive(Debug)]
 pub enum InstructionType {
@@ -34,4 +35,8 @@ fn rtype<'src>(
 
 pub fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
     rtype(just("add")).map(|rt| Instruction::Add(rt)).padded()
+}
+
+pub fn sub<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    rtype(just("sub")).map(|rt| Instruction::Sub(rt)).padded()
 }
