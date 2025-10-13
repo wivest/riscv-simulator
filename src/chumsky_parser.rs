@@ -8,6 +8,7 @@ pub enum Instruction {
 #[derive(Debug)]
 pub enum InstructionType {
     RType { rd: i32, rs1: i32, rs2: i32 },
+    IType { rd: i32, rs: i32, imm: i32 },
 }
 
 fn register<'src>() -> impl Parser<'src, &'src str, i32> {
