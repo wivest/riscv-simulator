@@ -17,6 +17,10 @@ fn register<'src>() -> impl Parser<'src, &'src str, i32> {
         .map(|s: &'src str| s.parse::<i32>().unwrap())
 }
 
+fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
+    text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap())
+}
+
 fn rtype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, InstructionType> {
