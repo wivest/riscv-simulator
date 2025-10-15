@@ -1,14 +1,30 @@
 use chumsky::prelude::*;
 
+#[derive(Debug, Clone, Copy)]
+enum RType {
+    Add,
+    Sub,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum IType {
+    Addi,
+}
+
 #[derive(Debug)]
 pub enum Instruction {
-    Add(InstructionType),
-    Sub(InstructionType),
-}
-#[derive(Debug)]
-pub enum InstructionType {
-    RType { rd: i32, rs1: i32, rs2: i32 },
-    IType { rd: i32, rs: i32, imm: i32 },
+    RType {
+        name: RType,
+        rd: i32,
+        rs1: i32,
+        rs2: i32,
+    },
+    IType {
+        name: IType,
+        rd: i32,
+        rs: i32,
+        imm: i32,
+    },
 }
 
 fn register<'src>() -> impl Parser<'src, &'src str, i32> {
@@ -22,8 +38,9 @@ fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
 }
 
 fn rtype<'src>(
+    name: RType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, InstructionType> {
+) -> impl Parser<'src, &'src str, Instruction> {
     prefix
         .ignore_then(
             register()
@@ -31,19 +48,15 @@ fn rtype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 3]>(),
         )
-        .map(|[rd, rs1, rs2]| InstructionType::RType {
-            rd: rd,
-            rs1: rs1,
-            rs2: rs2,
-        })
+        .map(move |[rd, rs1, rs2]| Instruction::RType { name, rd, rs1, rs2 })
 }
 
 fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(just("add")).map(|rt| Instruction::Add(rt))
+    rtype(RType::Add, just("add"))
 }
 
 fn sub<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(just("sub")).map(|rt| Instruction::Sub(rt))
+    rtype(RType::Sub, just("sub"))
 }
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
