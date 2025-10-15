@@ -1,13 +1,13 @@
 use chumsky::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
-enum RType {
+pub enum RType {
     Add,
     Sub,
 }
 
 #[derive(Debug, Clone, Copy)]
-enum IType {
+pub enum IType {
     Addi,
 }
 
@@ -51,16 +51,27 @@ fn rtype<'src>(
         .map(move |[rd, rs1, rs2]| Instruction::RType { name, rd, rs1, rs2 })
 }
 
-fn add<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(RType::Add, just("add"))
-}
-
-fn sub<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    rtype(RType::Sub, just("sub"))
+fn itype<'src>(
+    name: IType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    prefix
+        .ignore_then(
+            register()
+                .padded()
+                .separated_by(just(","))
+                .collect_exactly::<[_; 2]>()
+                .then_ignore(just(","))
+                .then(immediate().padded()),
+        )
+        .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
-    let instruction = choice((add(), sub()));
+    let add = rtype(RType::Add, just("add"));
+    let sub = rtype(RType::Sub, just("sub"));
+    let addi = itype(IType::Addi, just("addi"));
+    let instruction = choice((add, sub, addi));
 
     instruction.padded().repeated().collect()
 }
