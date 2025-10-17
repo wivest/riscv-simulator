@@ -1,4 +1,5 @@
 use chumsky::Parser;
+use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
@@ -18,7 +19,12 @@ fn main() {
     if let Ok(content) = open_file(path) {
         let result = chumsky_parser::program().parse(&content).into_result();
         match result {
-            Ok(instructions) => processor::execute(instructions),
+            Ok(instructions) => {
+                let mut proc = Processor::new();
+                println!("{:?}", proc.registers);
+                proc.execute(instructions);
+                println!("{:?}", proc.registers);
+            }
             Err(err) => println!("{err:?}"),
         }
     } else {

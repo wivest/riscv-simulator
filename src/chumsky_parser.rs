@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::processor::Processor;
+
 #[derive(Debug, Clone, Copy)]
 pub enum RType {
     Add,
@@ -28,19 +30,21 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    pub fn execute(&self) {
+    pub fn execute(self, cpu: &mut Processor) {
         match self {
             Instruction::RType { name, rd, rs1, rs2 } => match name {
                 RType::Add => {
-                    println!("rd {rd} = rs1 {rs1} + rs2 {rs2}");
+                    cpu.registers[rd as usize] =
+                        cpu.registers[rs1 as usize] + cpu.registers[rs2 as usize];
                 }
                 RType::Sub => {
-                    println!("rd {rd} = rs1 {rs1} - rs2 {rs2}");
+                    cpu.registers[rd as usize] =
+                        cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
                 }
             },
             Instruction::IType { name, rd, rs, imm } => match name {
                 IType::Addi => {
-                    println!("rd {rd} = rs {rs} + {imm}")
+                    cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm;
                 }
             },
         }
