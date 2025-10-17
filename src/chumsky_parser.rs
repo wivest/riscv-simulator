@@ -27,6 +27,26 @@ pub enum Instruction {
     },
 }
 
+impl Instruction {
+    pub fn execute(&self) {
+        match self {
+            Instruction::RType { name, rd, rs1, rs2 } => match name {
+                RType::Add => {
+                    println!("rd {rd} = rs1 {rs1} + rs2 {rs2}");
+                }
+                RType::Sub => {
+                    println!("rd {rd} = rs1 {rs1} - rs2 {rs2}");
+                }
+            },
+            Instruction::IType { name, rd, rs, imm } => match name {
+                IType::Addi => {
+                    println!("rd {rd} = rs {rs} + {imm}")
+                }
+            },
+        }
+    }
+}
+
 fn register<'src>() -> impl Parser<'src, &'src str, i32> {
     just("x")
         .ignore_then(text::int(10))
