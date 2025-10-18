@@ -99,3 +99,14 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
 
     instruction.padded().repeated().collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_register() {
+        let result = register().parse("x10");
+        assert_eq!(result.unwrap(), 10);
+    }
+}
