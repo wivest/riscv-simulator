@@ -6,6 +6,9 @@ use crate::processor::Processor;
 pub enum RType {
     Add,
     Sub,
+    Mul,
+    Div,
+    Rem,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -40,6 +43,18 @@ impl Instruction {
                 RType::Sub => {
                     cpu.registers[rd as usize] =
                         cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
+                }
+                RType::Mul => {
+                    cpu.registers[rd as usize] =
+                        cpu.registers[rs1 as usize] * cpu.registers[rs2 as usize];
+                }
+                RType::Div => {
+                    cpu.registers[rd as usize] =
+                        cpu.registers[rs1 as usize] / cpu.registers[rs2 as usize];
+                }
+                RType::Rem => {
+                    cpu.registers[rd as usize] =
+                        cpu.registers[rs1 as usize] % cpu.registers[rs2 as usize];
                 }
             },
             Instruction::IType { name, rd, rs, imm } => match name {
@@ -94,8 +109,11 @@ fn itype<'src>(
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
+    let mul = rtype(RType::Mul, just("mul"));
+    let div = rtype(RType::Div, just("div"));
+    let rem = rtype(RType::Rem, just("rem"));
     let addi = itype(IType::Addi, just("addi"));
-    let instruction = choice((add, sub, addi));
+    let instruction = choice((add, sub, mul, div, rem, addi));
 
     instruction.padded().repeated().collect()
 }
