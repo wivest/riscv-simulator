@@ -127,4 +127,10 @@ mod tests {
         let result = register().parse("x10");
         assert_eq!(result.unwrap(), 10);
     }
+
+    #[test]
+    fn test_immediate() {
+        let result = immediate().parse("42");
+        assert_eq!(result.unwrap(), 42);
+    }
 }
