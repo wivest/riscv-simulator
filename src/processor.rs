@@ -1,12 +1,16 @@
 use crate::chumsky_parser::Instruction;
 
 pub struct Processor {
+    pub pc: i32,
     pub registers: [i32; 32],
 }
 
 impl Processor {
     pub fn new() -> Self {
-        Processor { registers: [0; 32] }
+        Processor {
+            pc: 0,
+            registers: [0; 32],
+        }
     }
 
     pub fn execute(&mut self, instructions: Vec<Instruction>) {
