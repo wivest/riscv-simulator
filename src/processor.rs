@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::chumsky_parser::Instruction;
 
 pub struct Processor {
-    pub pc: i32,
+    pub pc: usize,
     pub registers: [i32; 32],
     pub memory: HashMap<i32, u8>,
 }
@@ -18,9 +18,11 @@ impl Processor {
     }
 
     pub fn execute(&mut self, instructions: Vec<Instruction>) {
-        for instruction in instructions {
+        while self.pc < instructions.len() {
+            let instruction = instructions.get(self.pc).unwrap();
             println!("{instruction:?}");
             instruction.execute(self);
+            self.pc += 1;
         }
     }
 }

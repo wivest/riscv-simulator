@@ -33,8 +33,8 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    pub fn execute(self, cpu: &mut Processor) {
-        match self {
+    pub fn execute(&self, cpu: &mut Processor) {
+        match *self {
             Instruction::RType { name, rd, rs1, rs2 } => match name {
                 RType::Add => {
                     cpu.registers[rd as usize] =
