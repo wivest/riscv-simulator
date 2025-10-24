@@ -49,6 +49,27 @@ fn itype<'src>(
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
 
+fn btype<'src>(
+    name: BType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    prefix
+        .ignore_then(
+            register()
+                .padded()
+                .separated_by(just(","))
+                .collect_exactly::<[_; 2]>()
+                .then_ignore(just(","))
+                .then(immediate().padded()),
+        )
+        .map(move |([rs1, rs2], offset)| Instruction::BType {
+            name,
+            rs1,
+            rs2,
+            offset,
+        })
+}
+
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
@@ -56,7 +77,8 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let div = rtype(RType::Div, just("div"));
     let rem = rtype(RType::Rem, just("rem"));
     let addi = itype(IType::Addi, just("addi"));
-    let instruction = choice((add, sub, mul, div, rem, addi));
+    let beq = btype(BType::Beq, just("beq"));
+    let instruction = choice((add, sub, mul, div, rem, addi, beq));
 
     instruction.padded().repeated().collect()
 }
