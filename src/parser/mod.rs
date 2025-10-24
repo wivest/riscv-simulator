@@ -1,25 +1,9 @@
 use chumsky::prelude::*;
 
 use crate::processor::Processor;
+use instruction::{BType, IType, RType};
 
-#[derive(Debug, Clone, Copy)]
-pub enum RType {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum IType {
-    Addi,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum BType {
-    Beq,
-}
+mod instruction;
 
 #[derive(Debug)]
 pub enum Instruction {

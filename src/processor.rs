@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::chumsky_parser::Instruction;
+use crate::parser::Instruction;
 
 pub struct Processor {
     pub pc: usize,
