@@ -18,11 +18,10 @@ impl Processor {
     }
 
     pub fn execute(&mut self, instructions: Vec<Instruction>) {
-        while self.pc < instructions.len() {
-            let instruction = instructions.get(self.pc).unwrap();
+        while self.pc / 4 < instructions.len() {
+            let instruction = instructions.get(self.pc / 4).unwrap();
             println!("{instruction:?}");
             instruction.execute(self);
-            self.pc += 1;
         }
     }
 }

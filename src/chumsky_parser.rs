@@ -46,33 +46,39 @@ pub enum Instruction {
 impl Instruction {
     pub fn execute(&self, cpu: &mut Processor) {
         match *self {
-            Instruction::RType { name, rd, rs1, rs2 } => match name {
-                RType::Add => {
-                    cpu.registers[rd as usize] =
-                        cpu.registers[rs1 as usize] + cpu.registers[rs2 as usize];
+            Instruction::RType { name, rd, rs1, rs2 } => {
+                match name {
+                    RType::Add => {
+                        cpu.registers[rd as usize] =
+                            cpu.registers[rs1 as usize] + cpu.registers[rs2 as usize];
+                    }
+                    RType::Sub => {
+                        cpu.registers[rd as usize] =
+                            cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
+                    }
+                    RType::Mul => {
+                        cpu.registers[rd as usize] =
+                            cpu.registers[rs1 as usize] * cpu.registers[rs2 as usize];
+                    }
+                    RType::Div => {
+                        cpu.registers[rd as usize] =
+                            cpu.registers[rs1 as usize] / cpu.registers[rs2 as usize];
+                    }
+                    RType::Rem => {
+                        cpu.registers[rd as usize] =
+                            cpu.registers[rs1 as usize] % cpu.registers[rs2 as usize];
+                    }
                 }
-                RType::Sub => {
-                    cpu.registers[rd as usize] =
-                        cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
+                cpu.pc += 4;
+            }
+            Instruction::IType { name, rd, rs, imm } => {
+                match name {
+                    IType::Addi => {
+                        cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm;
+                    }
                 }
-                RType::Mul => {
-                    cpu.registers[rd as usize] =
-                        cpu.registers[rs1 as usize] * cpu.registers[rs2 as usize];
-                }
-                RType::Div => {
-                    cpu.registers[rd as usize] =
-                        cpu.registers[rs1 as usize] / cpu.registers[rs2 as usize];
-                }
-                RType::Rem => {
-                    cpu.registers[rd as usize] =
-                        cpu.registers[rs1 as usize] % cpu.registers[rs2 as usize];
-                }
-            },
-            Instruction::IType { name, rd, rs, imm } => match name {
-                IType::Addi => {
-                    cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm;
-                }
-            },
+                cpu.pc += 4;
+            }
             Instruction::BType {
                 name,
                 rs1,
