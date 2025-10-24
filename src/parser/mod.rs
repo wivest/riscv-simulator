@@ -30,56 +30,14 @@ pub enum Instruction {
 impl Instruction {
     pub fn execute(&self, cpu: &mut Processor) {
         match *self {
-            Instruction::RType { name, rd, rs1, rs2 } => {
-                match name {
-                    RType::Add => {
-                        cpu.registers[rd as usize] =
-                            cpu.registers[rs1 as usize] + cpu.registers[rs2 as usize];
-                    }
-                    RType::Sub => {
-                        cpu.registers[rd as usize] =
-                            cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
-                    }
-                    RType::Mul => {
-                        cpu.registers[rd as usize] =
-                            cpu.registers[rs1 as usize] * cpu.registers[rs2 as usize];
-                    }
-                    RType::Div => {
-                        cpu.registers[rd as usize] =
-                            cpu.registers[rs1 as usize] / cpu.registers[rs2 as usize];
-                    }
-                    RType::Rem => {
-                        cpu.registers[rd as usize] =
-                            cpu.registers[rs1 as usize] % cpu.registers[rs2 as usize];
-                    }
-                }
-                cpu.pc += 4;
-            }
-            Instruction::IType { name, rd, rs, imm } => {
-                match name {
-                    IType::Addi => {
-                        cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm;
-                    }
-                }
-                cpu.pc += 4;
-            }
+            Instruction::RType { name, rd, rs1, rs2 } => name.execute(cpu, rd, rs1, rs2),
+            Instruction::IType { name, rd, rs, imm } => name.execute(cpu, rd, rs, imm),
             Instruction::BType {
                 name,
                 rs1,
                 rs2,
                 offset,
-            } => match name {
-                BType::Beq => {
-                    let left = cpu.registers[rs1 as usize];
-                    let right = cpu.registers[rs2 as usize];
-                    if left == right {
-                        let pc = cpu.pc as i32;
-                        cpu.pc = (pc + offset) as usize;
-                    } else {
-                        cpu.pc += 4;
-                    }
-                }
-            },
+            } => name.execute(cpu, rs1, rs2, offset),
         }
     }
 }
