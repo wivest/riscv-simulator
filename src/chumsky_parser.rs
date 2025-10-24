@@ -75,7 +75,9 @@ fn register<'src>() -> impl Parser<'src, &'src str, i32> {
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
     let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
     let number = text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap());
-    sign.then(number).map(|(s, n)| s * n)
+    sign.then_ignore(text::whitespace())
+        .then(number)
+        .map(|(s, n)| s * n)
 }
 
 fn rtype<'src>(
@@ -135,6 +137,8 @@ mod tests {
         let result = immediate().parse("42");
         assert_eq!(result.unwrap(), 42);
         let result = immediate().parse("-42");
-        assert_eq!(result.unwrap(), -42)
+        assert_eq!(result.unwrap(), -42);
+        let result = immediate().parse("- 42");
+        assert_eq!(result.unwrap(), -42);
     }
 }
