@@ -16,6 +16,11 @@ pub enum IType {
     Addi,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum BType {
+    Beq,
+}
+
 #[derive(Debug)]
 pub enum Instruction {
     RType {
@@ -29,6 +34,12 @@ pub enum Instruction {
         rd: i32,
         rs: i32,
         imm: i32,
+    },
+    BType {
+        name: BType,
+        rs1: i32,
+        rs2: i32,
+        offset: i32,
     },
 }
 
@@ -60,6 +71,23 @@ impl Instruction {
             Instruction::IType { name, rd, rs, imm } => match name {
                 IType::Addi => {
                     cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm;
+                }
+            },
+            Instruction::BType {
+                name,
+                rs1,
+                rs2,
+                offset,
+            } => match name {
+                BType::Beq => {
+                    let left = cpu.registers[rs1 as usize];
+                    let right = cpu.registers[rs2 as usize];
+                    if left == right {
+                        let pc = cpu.pc as i32;
+                        cpu.pc = (pc + offset) as usize;
+                    } else {
+                        cpu.pc += 4;
+                    }
                 }
             },
         }
