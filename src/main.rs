@@ -21,9 +21,9 @@ fn main() {
         match result {
             Ok(instructions) => {
                 let mut proc = Processor::new();
-                println!("{:?}", proc.registers);
                 proc.execute(instructions);
                 println!("{:?}", proc.registers);
+                println!("{:?}", proc.memory);
             }
             Err(err) => println!("{err:?}"),
         }

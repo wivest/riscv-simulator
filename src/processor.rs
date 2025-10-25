@@ -5,7 +5,7 @@ use crate::parser::instruction::Instruction;
 pub struct Processor {
     pub pc: usize,
     pub registers: [i32; 32],
-    pub memory: HashMap<i32, u8>,
+    pub memory: HashMap<usize, u8>,
 }
 
 impl Processor {

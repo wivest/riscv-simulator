@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 
 use instruction::Instruction;
-use instruction::{BType, IType, RType};
+use instruction::{BType, IType, RType, SType};
 
 pub mod instruction;
 
@@ -70,6 +70,28 @@ fn btype<'src>(
         })
 }
 
+fn stype<'src>(
+    name: SType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    prefix
+        .ignore_then(
+            register()
+                .padded()
+                .then_ignore(just(",").padded())
+                .then(immediate().padded())
+                .then_ignore(just("(").padded())
+                .then(register().padded())
+                .then_ignore(just(")").padded()),
+        )
+        .map(move |((rs2, imm), rs1)| Instruction::SType {
+            name,
+            rs1,
+            rs2,
+            imm,
+        })
+}
+
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
@@ -78,7 +100,8 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let rem = rtype(RType::Rem, just("rem"));
     let addi = itype(IType::Addi, just("addi"));
     let beq = btype(BType::Beq, just("beq"));
-    let instruction = choice((add, sub, mul, div, rem, addi, beq));
+    let sb = stype(SType::Sb, just("sb"));
+    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb));
 
     instruction.padded().repeated().collect()
 }

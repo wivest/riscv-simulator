@@ -1,12 +1,14 @@
 pub use btype::BType;
 pub use itype::IType;
 pub use rtype::RType;
+pub use stype::SType;
 
 use crate::processor::Processor;
 
-pub mod btype;
-pub mod itype;
-pub mod rtype;
+mod btype;
+mod itype;
+mod rtype;
+mod stype;
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -28,6 +30,12 @@ pub enum Instruction {
         rs2: i32,
         offset: i32,
     },
+    SType {
+        name: SType,
+        rs1: i32,
+        rs2: i32,
+        imm: i32,
+    },
 }
 
 impl Instruction {
@@ -41,6 +49,12 @@ impl Instruction {
                 rs2,
                 offset,
             } => name.execute(cpu, rs1, rs2, offset),
+            Instruction::SType {
+                name,
+                rs1,
+                rs2,
+                imm,
+            } => name.execute(cpu, rs1, rs2, imm),
         }
     }
 }
