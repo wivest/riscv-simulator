@@ -92,6 +92,23 @@ fn stype<'src>(
         })
 }
 
+fn itype_load<'src>(
+    name: IType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    prefix
+        .ignore_then(
+            register()
+                .padded()
+                .then_ignore(just(",").padded())
+                .then(immediate().padded())
+                .then_ignore(just("(").padded())
+                .then(register().padded())
+                .then_ignore(just(")").padded()),
+        )
+        .map(move |((rd, imm), rs)| Instruction::IType { name, rd, rs, imm })
+}
+
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
@@ -101,7 +118,8 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let addi = itype(IType::Addi, just("addi"));
     let beq = btype(BType::Beq, just("beq"));
     let sb = stype(SType::Sb, just("sb"));
-    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb));
+    let lb = itype_load(IType::Lb, just("lb"));
+    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb, lb));
 
     instruction.padded().repeated().collect()
 }
