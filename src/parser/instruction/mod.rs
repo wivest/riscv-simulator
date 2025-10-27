@@ -1,12 +1,13 @@
+use crate::processor::Processor;
 pub use btype::BType;
 pub use itype::IType;
+pub use jtype::JType;
 pub use rtype::RType;
 pub use stype::SType;
 
-use crate::processor::Processor;
-
 mod btype;
 mod itype;
+mod jtype;
 mod rtype;
 mod stype;
 
@@ -36,6 +37,11 @@ pub enum Instruction {
         rs2: i32,
         imm: i32,
     },
+    JType {
+        name: JType,
+        rd: i32,
+        imm: i32,
+    },
 }
 
 impl Instruction {
@@ -55,6 +61,7 @@ impl Instruction {
                 rs2,
                 imm,
             } => name.execute(cpu, rs1, rs2, imm),
+            Instruction::JType { name, rd, imm } => name.execute(cpu, rd, imm),
         }
     }
 }
