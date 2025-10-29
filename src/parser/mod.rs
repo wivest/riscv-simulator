@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 
 use instruction::Instruction;
-use instruction::{BType, IType, JType, RType, SType};
+use instruction::{BType, IType, JType, RType, SType, UType};
 
 pub mod instruction;
 
@@ -123,6 +123,20 @@ fn jtype<'src>(
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
+fn utype<'src>(
+    name: UType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    prefix
+        .ignore_then(
+            register()
+                .padded()
+                .then_ignore(just(",").padded())
+                .then(immediate().padded()),
+        )
+        .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
+}
+
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
@@ -134,7 +148,8 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let sb = stype(SType::Sb, just("sb"));
     let lb = itype_load(IType::Lb, just("lb"));
     let jal = jtype(JType::Jal, just("jal"));
-    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb, lb, jal));
+    let li = utype(UType::Li, just("li"));
+    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb, lb, jal, li));
 
     instruction.padded().repeated().collect()
 }

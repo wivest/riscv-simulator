@@ -39,6 +39,11 @@ pub enum Instruction {
         rs2: i32,
         imm: i32,
     },
+    UType {
+        name: UType,
+        rd: i32,
+        imm: i32,
+    },
     JType {
         name: JType,
         rd: i32,
@@ -64,6 +69,7 @@ impl Instruction {
                 imm,
             } => name.execute(cpu, rs1, rs2, imm),
             Instruction::JType { name, rd, imm } => name.execute(cpu, rd, imm),
+            Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
         }
     }
 }

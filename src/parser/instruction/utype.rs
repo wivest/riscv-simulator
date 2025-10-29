@@ -9,7 +9,7 @@ impl UType {
     pub fn execute(&self, cpu: &mut Processor, rd: i32, imm: i32) {
         match self {
             UType::Li => {
-                todo!()
+                cpu.registers[rd as usize] = imm;
             }
         }
     }
