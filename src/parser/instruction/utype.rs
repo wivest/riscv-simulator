@@ -12,5 +12,6 @@ impl UType {
                 cpu.registers[rd as usize] = imm;
             }
         }
+        cpu.pc += 4;
     }
 }

@@ -14,5 +14,6 @@ impl JType {
                 cpu.pc = (pc + imm) as usize;
             }
         }
+        cpu.pc += 4;
     }
 }
