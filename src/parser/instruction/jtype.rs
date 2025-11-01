@@ -9,7 +9,7 @@ impl JType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {
         match self {
             JType::Jal => {
-                cpu.registers[rd as usize] = cpu.pc as i32 + 4;
+                cpu.registers[rd] = cpu.pc as i32 + 4;
                 let pc = cpu.pc as i32;
                 cpu.pc = (pc + imm) as usize;
             }

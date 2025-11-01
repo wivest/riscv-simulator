@@ -8,9 +8,9 @@ pub enum IType {
 impl IType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs: usize, imm: i32) {
         match self {
-            IType::Addi => cpu.registers[rd as usize] = cpu.registers[rs as usize] + imm,
+            IType::Addi => cpu.registers[rd] = cpu.registers[rs] + imm,
             IType::Lb => {
-                let address = cpu.registers[rs as usize];
+                let address = cpu.registers[rs];
                 let byte = *cpu.memory.get(&(address as usize)).unwrap_or(&0);
                 cpu.registers[rd as usize] = byte as i32;
             }

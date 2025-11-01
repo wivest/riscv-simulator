@@ -12,26 +12,11 @@ pub enum RType {
 impl RType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs1: usize, rs2: usize) {
         match self {
-            RType::Add => {
-                cpu.registers[rd as usize] =
-                    cpu.registers[rs1 as usize] + cpu.registers[rs2 as usize];
-            }
-            RType::Sub => {
-                cpu.registers[rd as usize] =
-                    cpu.registers[rs1 as usize] - cpu.registers[rs2 as usize];
-            }
-            RType::Mul => {
-                cpu.registers[rd as usize] =
-                    cpu.registers[rs1 as usize] * cpu.registers[rs2 as usize];
-            }
-            RType::Div => {
-                cpu.registers[rd as usize] =
-                    cpu.registers[rs1 as usize] / cpu.registers[rs2 as usize];
-            }
-            RType::Rem => {
-                cpu.registers[rd as usize] =
-                    cpu.registers[rs1 as usize] % cpu.registers[rs2 as usize];
-            }
+            RType::Add => cpu.registers[rd] = cpu.registers[rs1] + cpu.registers[rs2],
+            RType::Sub => cpu.registers[rd] = cpu.registers[rs1] - cpu.registers[rs2],
+            RType::Mul => cpu.registers[rd] = cpu.registers[rs1] * cpu.registers[rs2],
+            RType::Div => cpu.registers[rd] = cpu.registers[rs1] / cpu.registers[rs2],
+            RType::Rem => cpu.registers[rd] = cpu.registers[rs1] % cpu.registers[rs2],
         }
         cpu.pc += 4;
     }
