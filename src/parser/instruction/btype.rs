@@ -6,7 +6,7 @@ pub enum BType {
 }
 
 impl BType {
-    pub fn execute(&self, cpu: &mut Processor, rs1: i32, rs2: i32, offset: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rs1: usize, rs2: usize, offset: i32) {
         match self {
             BType::Beq => {
                 let left = cpu.registers[rs1 as usize];

@@ -6,7 +6,7 @@ pub enum SType {
 }
 
 impl SType {
-    pub fn execute(&self, cpu: &mut Processor, rs1: i32, rs2: i32, imm: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rs1: usize, rs2: usize, imm: i32) {
         match self {
             SType::Sb => {
                 let val1 = cpu.registers[rs1 as usize];

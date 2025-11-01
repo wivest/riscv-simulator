@@ -10,7 +10,7 @@ pub enum RType {
 }
 
 impl RType {
-    pub fn execute(&self, cpu: &mut Processor, rd: i32, rs1: i32, rs2: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rd: usize, rs1: usize, rs2: usize) {
         match self {
             RType::Add => {
                 cpu.registers[rd as usize] =

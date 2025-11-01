@@ -6,7 +6,7 @@ pub enum JType {
 }
 
 impl JType {
-    pub fn execute(&self, cpu: &mut Processor, rd: i32, imm: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {
         match self {
             JType::Jal => {
                 cpu.registers[rd as usize] = cpu.pc as i32 + 4;

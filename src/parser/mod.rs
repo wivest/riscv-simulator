@@ -5,10 +5,10 @@ use instruction::{BType, IType, JType, RType, SType, UType};
 
 pub mod instruction;
 
-fn register<'src>() -> impl Parser<'src, &'src str, i32> {
+fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     just("x")
         .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<i32>().unwrap())
+        .map(|s: &'src str| s.parse::<usize>().unwrap())
 }
 
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {

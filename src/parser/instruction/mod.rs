@@ -17,36 +17,36 @@ mod utype;
 pub enum Instruction {
     RType {
         name: RType,
-        rd: i32,
-        rs1: i32,
-        rs2: i32,
+        rd: usize,
+        rs1: usize,
+        rs2: usize,
     },
     IType {
         name: IType,
-        rd: i32,
-        rs: i32,
+        rd: usize,
+        rs: usize,
         imm: i32,
     },
     BType {
         name: BType,
-        rs1: i32,
-        rs2: i32,
+        rs1: usize,
+        rs2: usize,
         offset: i32,
     },
     SType {
         name: SType,
-        rs1: i32,
-        rs2: i32,
+        rs1: usize,
+        rs2: usize,
         imm: i32,
     },
     UType {
         name: UType,
-        rd: i32,
+        rd: usize,
         imm: i32,
     },
     JType {
         name: JType,
-        rd: i32,
+        rd: usize,
         imm: i32,
     },
 }

@@ -6,7 +6,7 @@ pub enum UType {
 }
 
 impl UType {
-    pub fn execute(&self, cpu: &mut Processor, rd: i32, imm: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {
         match self {
             UType::Li => {
                 cpu.registers[rd as usize] = imm;
