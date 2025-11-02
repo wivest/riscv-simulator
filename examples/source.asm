@@ -4,4 +4,5 @@ add x1, x2, x3
 add x0, x0,  x0
 sub x4, x2, x3
 sb x2, 29(x1)
+lb x8, 31(x1)
 li x7, 145
