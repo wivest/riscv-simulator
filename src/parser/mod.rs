@@ -9,6 +9,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     just("x")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
+        .filter(|n| 1 <= *n && *n <= 32)
 }
 
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
