@@ -16,7 +16,7 @@ fn register_x<'src>() -> impl Parser<'src, &'src str, usize> {
     just("x")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| 0 <= *n && *n <= 31)
+        .filter(|n| *n <= 31)
 }
 
 fn register_name<'src>() -> impl Parser<'src, &'src str, usize> {
@@ -30,19 +30,19 @@ fn register_name<'src>() -> impl Parser<'src, &'src str, usize> {
     let temporary = just("t")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| 0 <= *n && *n <= 6)
+        .filter(|n| *n <= 6)
         .map(|n| if n <= 2 { n + 5 } else { n + 25 });
 
     let saved = just("s")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| 0 <= *n && *n <= 11)
+        .filter(|n| *n <= 11)
         .map(|n| if n <= 1 { n + 8 } else { n + 16 });
 
     let argument = just("a")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| 0 <= *n && *n <= 17)
+        .filter(|n| *n <= 17)
         .map(|n| n + 10);
 
     choice((zero, ra, sp, gp, tp, fp, temporary, saved, argument))
