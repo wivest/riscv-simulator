@@ -6,20 +6,11 @@ use instruction::{BType, IType, JType, RType, SType, UType};
 pub mod instruction;
 
 fn register<'src>() -> impl Parser<'src, &'src str, usize> {
-    just("x")
+    let index = just("x")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| 1 <= *n && *n <= 32)
-}
+        .filter(|n| *n <= 31);
 
-fn register_x<'src>() -> impl Parser<'src, &'src str, usize> {
-    just("x")
-        .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| *n <= 31)
-}
-
-fn register_name<'src>() -> impl Parser<'src, &'src str, usize> {
     let zero = just("zero").map(|_| 0);
     let ra = just("ra").map(|_| 1);
     let sp = just("sp").map(|_| 2);
@@ -45,7 +36,7 @@ fn register_name<'src>() -> impl Parser<'src, &'src str, usize> {
         .filter(|n| *n <= 17)
         .map(|n| n + 10);
 
-    choice((zero, ra, sp, gp, tp, fp, temporary, saved, argument))
+    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
 }
 
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
