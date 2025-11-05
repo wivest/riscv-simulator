@@ -187,9 +187,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_register() {
+    fn test_register_x() {
         let result = register().parse("x10");
         assert_eq!(result.unwrap(), 10);
+    }
+
+    #[test]
+    fn test_register_name() {
+        let zero = register().parse("zero");
+        let ra = register().parse("ra");
+        let sp = register().parse("sp");
+        let gp = register().parse("gp");
+        let tp = register().parse("tp");
+        let fp = register().parse("fp");
+
+        assert_eq!(zero.unwrap(), 0);
+        assert_eq!(ra.unwrap(), 1);
+        assert_eq!(sp.unwrap(), 2);
+        assert_eq!(gp.unwrap(), 3);
+        assert_eq!(tp.unwrap(), 4);
+        assert_eq!(fp.unwrap(), 8);
     }
 
     #[test]
