@@ -33,7 +33,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let argument = just("a")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| *n <= 17)
+        .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
@@ -207,6 +207,25 @@ mod tests {
         assert_eq!(gp.unwrap(), 3);
         assert_eq!(tp.unwrap(), 4);
         assert_eq!(fp.unwrap(), 8);
+    }
+
+    #[test]
+    fn test_register_name_index() {
+        let t6 = register().parse("t6");
+        let a7 = register().parse("a7");
+        let s11 = register().parse("s11");
+
+        assert_eq!(t6.unwrap(), 31);
+        assert_eq!(a7.unwrap(), 17);
+        assert_eq!(s11.unwrap(), 27);
+
+        let t7 = register().parse("t7");
+        let a8 = register().parse("a8");
+        let s12 = register().parse("s12");
+
+        assert_eq!(t7.has_errors(), true);
+        assert_eq!(a8.has_errors(), true);
+        assert_eq!(s12.has_errors(), true);
     }
 
     #[test]
