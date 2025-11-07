@@ -4,7 +4,7 @@ use crate::parser::instruction::Instruction;
 
 pub struct Processor {
     pub pc: usize,
-    pub registers: [i32; 32],
+    pub registers: [i32; 33],
     pub memory: HashMap<usize, u8>,
 }
 
@@ -12,7 +12,7 @@ impl Processor {
     pub fn new() -> Self {
         Processor {
             pc: 0,
-            registers: [0; 32],
+            registers: [0; 33],
             memory: HashMap::new(),
         }
     }

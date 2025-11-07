@@ -11,6 +11,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
         .map(|s: &'src str| s.parse::<usize>().unwrap())
         .filter(|n| *n <= 31);
 
+    let pc = just("pc").map(|_| 33);
     let zero = just("zero").map(|_| 0);
     let ra = just("ra").map(|_| 1);
     let sp = just("sp").map(|_| 2);
@@ -18,7 +19,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let tp = just("tp").map(|_| 4);
     let fp = just("fp").map(|_| 8);
 
-    let temporary = just("t")
+    let tmp = just("t")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
         .filter(|n| *n <= 6)
@@ -36,7 +37,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
-    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
+    choice((index, pc, zero, ra, sp, gp, tp, fp, tmp, saved, argument))
 }
 
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
@@ -194,6 +195,7 @@ mod tests {
 
     #[test]
     fn test_register_name() {
+        let pc = register().parse("pc");
         let zero = register().parse("zero");
         let ra = register().parse("ra");
         let sp = register().parse("sp");
@@ -201,6 +203,7 @@ mod tests {
         let tp = register().parse("tp");
         let fp = register().parse("fp");
 
+        assert_eq!(pc.unwrap(), 33);
         assert_eq!(zero.unwrap(), 0);
         assert_eq!(ra.unwrap(), 1);
         assert_eq!(sp.unwrap(), 2);
