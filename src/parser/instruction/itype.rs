@@ -15,6 +15,6 @@ impl IType {
                 cpu.registers[rd as usize] = byte as i32;
             }
         }
-        cpu.pc += 4;
+        cpu.set_pc(cpu.get_pc() + 4);
     }
 }

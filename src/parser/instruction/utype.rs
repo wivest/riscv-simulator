@@ -12,6 +12,6 @@ impl UType {
                 cpu.registers[rd] = imm;
             }
         }
-        cpu.pc += 4;
+        cpu.set_pc(cpu.get_pc() + 4);
     }
 }

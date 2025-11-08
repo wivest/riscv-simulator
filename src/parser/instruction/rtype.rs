@@ -18,6 +18,6 @@ impl RType {
             RType::Div => cpu.registers[rd] = cpu.registers[rs1] / cpu.registers[rs2],
             RType::Rem => cpu.registers[rd] = cpu.registers[rs1] % cpu.registers[rs2],
         }
-        cpu.pc += 4;
+        cpu.set_pc(cpu.get_pc() + 4);
     }
 }
