@@ -22,7 +22,6 @@ fn main() {
             Ok(instructions) => {
                 let mut proc = Processor::new();
                 proc.execute(instructions);
-                println!("{:?}", proc.registers);
                 println!("{:?}", proc.memory);
             }
             Err(err) => println!("{err:?}"),

@@ -8,11 +8,11 @@ pub enum IType {
 impl IType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs: usize, imm: i32) {
         match self {
-            IType::Addi => cpu.registers[rd] = cpu.registers[rs] + imm,
+            IType::Addi => cpu.set_reg(rd, cpu.get_reg(rs) + imm),
             IType::Lb => {
-                let address = cpu.registers[rs];
+                let address = cpu.get_reg(rs);
                 let byte = *cpu.memory.get(&(address as usize)).unwrap_or(&0);
-                cpu.registers[rd as usize] = byte as i32;
+                cpu.set_reg(rd, byte as i32);
             }
         }
         cpu.set_pc(cpu.get_pc() + 4);
