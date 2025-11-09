@@ -19,7 +19,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let tp = just("tp").map(|_| 4);
     let fp = just("fp").map(|_| 8);
 
-    let tmp = just("t")
+    let temporary = just("t")
         .ignore_then(text::int(10))
         .map(|s: &'src str| s.parse::<usize>().unwrap())
         .filter(|n| *n <= 6)
@@ -37,7 +37,10 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
-    choice((index, pc, zero, ra, sp, gp, tp, fp, tmp, saved, argument))
+    choice((
+        index, pc, zero, ra, sp, gp, tp, fp, temporary, saved, argument,
+    ))
+    .padded()
 }
 
 fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
@@ -55,7 +58,6 @@ fn rtype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .separated_by(just(","))
                 .collect_exactly::<[_; 3]>(),
         )
@@ -69,7 +71,6 @@ fn itype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
@@ -85,7 +86,6 @@ fn btype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
@@ -106,11 +106,10 @@ fn stype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .then_ignore(just(",").padded())
                 .then(immediate().padded())
                 .then_ignore(just("(").padded())
-                .then(register().padded())
+                .then(register())
                 .then_ignore(just(")").padded()),
         )
         .map(move |((rs2, imm), rs1)| Instruction::SType {
@@ -128,11 +127,10 @@ fn itype_load<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .then_ignore(just(",").padded())
                 .then(immediate().padded())
                 .then_ignore(just("(").padded())
-                .then(register().padded())
+                .then(register())
                 .then_ignore(just(")").padded()),
         )
         .map(move |((rd, imm), rs)| Instruction::IType { name, rd, rs, imm })
@@ -145,7 +143,6 @@ fn jtype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .then_ignore(just(",").padded())
                 .then(immediate().padded()),
         )
@@ -159,7 +156,6 @@ fn utype<'src>(
     prefix
         .ignore_then(
             register()
-                .padded()
                 .then_ignore(just(",").padded())
                 .then(immediate().padded()),
         )
