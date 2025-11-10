@@ -49,6 +49,7 @@ fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
     sign.then_ignore(text::whitespace())
         .then(number)
         .map(|(s, n)| s * n)
+        .padded()
 }
 
 fn rtype<'src>(
@@ -74,7 +75,7 @@ fn itype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate().padded()),
+                .then(immediate()),
         )
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
@@ -89,7 +90,7 @@ fn btype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate().padded()),
+                .then(immediate()),
         )
         .map(move |([rs1, rs2], offset)| Instruction::BType {
             name,
@@ -107,7 +108,7 @@ fn stype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate().padded())
+                .then(immediate())
                 .then_ignore(just("(").padded())
                 .then(register())
                 .then_ignore(just(")").padded()),
@@ -128,7 +129,7 @@ fn itype_load<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate().padded())
+                .then(immediate())
                 .then_ignore(just("(").padded())
                 .then(register())
                 .then_ignore(just(")").padded()),
@@ -141,11 +142,7 @@ fn jtype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(
-            register()
-                .then_ignore(just(",").padded())
-                .then(immediate().padded()),
-        )
+        .ignore_then(register().then_ignore(just(",").padded()).then(immediate()))
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
@@ -154,11 +151,7 @@ fn utype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(
-            register()
-                .then_ignore(just(",").padded())
-                .then(immediate().padded()),
-        )
+        .ignore_then(register().then_ignore(just(",").padded()).then(immediate()))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
