@@ -65,6 +65,16 @@ fn rtype<'src>(
         .map(move |[rd, rs1, rs2]| Instruction::RType { name, rd, rs1, rs2 })
 }
 
+fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let add = rtype(RType::Add, just("add"));
+    let sub = rtype(RType::Sub, just("sub"));
+    let mul = rtype(RType::Mul, just("mul"));
+    let div = rtype(RType::Div, just("div"));
+    let rem = rtype(RType::Rem, just("rem"));
+
+    choice((add, sub, mul, div, rem))
+}
+
 fn itype<'src>(
     name: IType,
     prefix: impl Parser<'src, &'src str, &'src str>,
@@ -156,18 +166,14 @@ fn utype<'src>(
 }
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
-    let add = rtype(RType::Add, just("add"));
-    let sub = rtype(RType::Sub, just("sub"));
-    let mul = rtype(RType::Mul, just("mul"));
-    let div = rtype(RType::Div, just("div"));
-    let rem = rtype(RType::Rem, just("rem"));
+    let rtype_ins = rtype_instructions();
     let addi = itype(IType::Addi, just("addi"));
     let beq = btype(BType::Beq, just("beq"));
     let sb = stype(SType::Sb, just("sb"));
     let lb = itype_load(IType::Lb, just("lb"));
     let jal = jtype(JType::Jal, just("jal"));
     let li = utype(UType::Li, just("li"));
-    let instruction = choice((add, sub, mul, div, rem, addi, beq, sb, lb, jal, li));
+    let instruction = choice((rtype_ins, addi, beq, sb, lb, jal, li));
 
     instruction.padded().repeated().collect()
 }
