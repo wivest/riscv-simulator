@@ -90,6 +90,13 @@ fn itype<'src>(
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
 
+fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let addi = itype(IType::Addi, just("addi"));
+    let lb = itype_load(IType::Lb, just("lb"));
+
+    choice((addi, lb))
+}
+
 fn btype<'src>(
     name: BType,
     prefix: impl Parser<'src, &'src str, &'src str>,
@@ -108,6 +115,12 @@ fn btype<'src>(
             rs2,
             offset,
         })
+}
+
+fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let beq = btype(BType::Beq, just("beq"));
+
+    choice((beq,))
 }
 
 fn stype<'src>(
@@ -129,6 +142,12 @@ fn stype<'src>(
             rs2,
             imm,
         })
+}
+
+fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let sb = stype(SType::Sb, just("sb"));
+
+    choice((sb,))
 }
 
 fn itype_load<'src>(
@@ -156,6 +175,12 @@ fn jtype<'src>(
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
+fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let jal = jtype(JType::Jal, just("jal"));
+
+    choice((jal,))
+}
+
 fn utype<'src>(
     name: UType,
     prefix: impl Parser<'src, &'src str, &'src str>,
@@ -165,15 +190,23 @@ fn utype<'src>(
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
+fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+    let li = utype(UType::Li, just("li"));
+
+    choice((li,))
+}
+
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let rtype_ins = rtype_instructions();
-    let addi = itype(IType::Addi, just("addi"));
-    let beq = btype(BType::Beq, just("beq"));
-    let sb = stype(SType::Sb, just("sb"));
-    let lb = itype_load(IType::Lb, just("lb"));
-    let jal = jtype(JType::Jal, just("jal"));
-    let li = utype(UType::Li, just("li"));
-    let instruction = choice((rtype_ins, addi, beq, sb, lb, jal, li));
+    let itype_ins = itype_instructions();
+    let btype_ins = btype_instructions();
+    let stype_ins = stype_instructions();
+    let jtype_ins = jtype_instructions();
+    let utype_ins = utype_instructions();
+
+    let instruction = choice((
+        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
+    ));
 
     instruction.padded().repeated().collect()
 }
