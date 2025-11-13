@@ -192,8 +192,10 @@ fn utype<'src>(
 
 fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let li = utype(UType::Li, just("li"));
+    let lui = utype(UType::Lui, just("lui"));
+    let auipc = utype(UType::Auipc, just("auipc"));
 
-    choice((li,))
+    choice((li, lui, auipc))
 }
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
