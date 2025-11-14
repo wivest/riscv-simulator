@@ -12,8 +12,8 @@ impl UType {
         match self {
             UType::Li => cpu.set_reg(rd, imm),
             UType::Lui => cpu.set_reg(rd, imm << 12),
-            UType::Auipc => cpu.set_reg(rd, cpu.get_pc() as i32 + imm << 12),
+            UType::Auipc => cpu.set_reg(rd, cpu.pc as i32 + imm << 12),
         }
-        cpu.set_pc(cpu.get_pc() + 4);
+        cpu.pc += 4;
     }
 }

@@ -12,10 +12,10 @@ impl BType {
                 let left = cpu.get_reg(rs1);
                 let right = cpu.get_reg(rs2);
                 if left == right {
-                    let pc = cpu.get_pc() as i32;
-                    cpu.set_pc((pc + offset) as usize);
+                    let pc = cpu.pc as i32;
+                    cpu.pc = (pc + offset) as usize;
                 } else {
-                    cpu.set_pc(cpu.get_pc() + 4);
+                    cpu.pc += 4;
                 }
             }
         }

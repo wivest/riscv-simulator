@@ -9,11 +9,11 @@ impl JType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {
         match self {
             JType::Jal => {
-                cpu.set_reg(rd, cpu.get_pc() as i32 + 4);
-                let pc = cpu.get_pc() as i32;
-                cpu.set_pc((pc + imm) as usize);
+                cpu.set_reg(rd, cpu.pc as i32 + 4);
+                let pc = cpu.pc as i32;
+                cpu.pc = (pc as i32 + imm) as usize;
             }
         }
-        cpu.set_pc(cpu.get_pc() + 4);
+        cpu.pc += 4;
     }
 }

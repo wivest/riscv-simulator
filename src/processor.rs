@@ -3,24 +3,18 @@ use std::collections::HashMap;
 use crate::parser::instruction::Instruction;
 
 pub struct Processor {
-    registers: [i32; 33],
+    pub pc: usize,
     pub memory: HashMap<usize, u8>,
+    registers: [i32; 32],
 }
 
 impl Processor {
     pub fn new() -> Self {
         Processor {
-            registers: [0; 33],
+            pc: 0,
+            registers: [0; 32],
             memory: HashMap::new(),
         }
-    }
-
-    pub fn get_pc(&self) -> usize {
-        self.registers[32] as usize
-    }
-
-    pub fn set_pc(&mut self, value: usize) {
-        self.registers[32] = value as i32;
     }
 
     pub fn get_reg(&self, index: usize) -> i32 {
@@ -34,8 +28,8 @@ impl Processor {
     }
 
     pub fn execute(&mut self, instructions: Vec<Instruction>) {
-        while self.get_pc() / 4 < instructions.len() {
-            let instruction = instructions.get(self.get_pc() / 4).unwrap();
+        while self.pc / 4 < instructions.len() {
+            let instruction = instructions.get(self.pc / 4).unwrap();
             println!("{instruction:?}");
             instruction.execute(self);
         }

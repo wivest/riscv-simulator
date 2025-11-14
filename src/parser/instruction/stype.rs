@@ -15,6 +15,6 @@ impl SType {
                 cpu.memory.insert(address, val2 as u8);
             }
         }
-        cpu.set_pc(cpu.get_pc() + 4);
+        cpu.pc += 4;
     }
 }

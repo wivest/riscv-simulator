@@ -5,6 +5,7 @@ pub enum IType {
     Addi,
     Lb,
 }
+
 impl IType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs: usize, imm: i32) {
         match self {
@@ -15,6 +16,6 @@ impl IType {
                 cpu.set_reg(rd, byte as i32);
             }
         }
-        cpu.set_pc(cpu.get_pc() + 4);
+        cpu.pc += 4;
     }
 }
