@@ -48,6 +48,16 @@ fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
         .padded()
 }
 
+fn immediate_bits<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
+    let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
+    let number = text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap());
+    sign.then_ignore(text::whitespace())
+        .then(number)
+        .filter(move |(_, n)| 0u32.leading_zeros() - n.leading_zeros() <= bits)
+        .map(|(s, n)| s * n)
+        .padded()
+}
+
 fn rtype<'src>(
     name: RType,
     prefix: impl Parser<'src, &'src str, &'src str>,
