@@ -274,4 +274,12 @@ mod tests {
         let result = immediate().parse("- 42");
         assert_eq!(result.unwrap(), -42);
     }
+
+    #[test]
+    fn test_immediate_bits() {
+        let result = immediate_bits(12).parse("4095");
+        assert_eq!(result.unwrap(), 4095);
+        let result = immediate_bits(12).parse("4096");
+        assert_eq!(result.has_errors(), true);
+    }
 }
