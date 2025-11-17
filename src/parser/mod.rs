@@ -39,16 +39,7 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument)).padded()
 }
 
-fn immediate<'src>() -> impl Parser<'src, &'src str, i32> {
-    let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
-    let number = text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap());
-    sign.then_ignore(text::whitespace())
-        .then(number)
-        .map(|(s, n)| s * n)
-        .padded()
-}
-
-fn immediate_bits<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
+fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
     let number = text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap());
     sign.then_ignore(text::whitespace())
@@ -91,7 +82,7 @@ fn itype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate()),
+                .then(immediate(32)),
         )
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
@@ -113,7 +104,7 @@ fn btype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate()),
+                .then(immediate(32)),
         )
         .map(move |([rs1, rs2], offset)| Instruction::BType {
             name,
@@ -137,7 +128,7 @@ fn stype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate())
+                .then(immediate(32))
                 .then_ignore(just("(").padded())
                 .then(register())
                 .then_ignore(just(")").padded()),
@@ -164,7 +155,7 @@ fn itype_load<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate())
+                .then(immediate(32))
                 .then_ignore(just("(").padded())
                 .then(register())
                 .then_ignore(just(")").padded()),
@@ -177,7 +168,11 @@ fn jtype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(register().then_ignore(just(",").padded()).then(immediate()))
+        .ignore_then(
+            register()
+                .then_ignore(just(",").padded())
+                .then(immediate(32)),
+        )
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
@@ -192,7 +187,11 @@ fn utype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(register().then_ignore(just(",").padded()).then(immediate()))
+        .ignore_then(
+            register()
+                .then_ignore(just(",").padded())
+                .then(immediate(32)),
+        )
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
@@ -267,19 +266,16 @@ mod tests {
 
     #[test]
     fn test_immediate() {
-        let result = immediate().parse("42");
+        let result = immediate(32).parse("42");
         assert_eq!(result.unwrap(), 42);
-        let result = immediate().parse("-42");
+        let result = immediate(32).parse("-42");
         assert_eq!(result.unwrap(), -42);
-        let result = immediate().parse("- 42");
+        let result = immediate(32).parse("- 42");
         assert_eq!(result.unwrap(), -42);
-    }
 
-    #[test]
-    fn test_immediate_bits() {
-        let result = immediate_bits(12).parse("4095");
+        let result = immediate(12).parse("4095");
         assert_eq!(result.unwrap(), 4095);
-        let result = immediate_bits(12).parse("4096");
+        let result = immediate(12).parse("4096");
         assert_eq!(result.has_errors(), true);
     }
 }
