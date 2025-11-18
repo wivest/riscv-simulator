@@ -5,11 +5,12 @@ use instruction::{BType, IType, JType, RType, SType, UType};
 
 pub mod instruction;
 
+fn number<'src, T: std::str::FromStr>() -> impl Parser<'src, &'src str, T> {
+    text::int(10).map(|s: &'src str| s.parse::<T>().ok().unwrap())
+}
+
 fn register<'src>() -> impl Parser<'src, &'src str, usize> {
-    let index = just("x")
-        .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<usize>().unwrap())
-        .filter(|n| *n <= 31);
+    let index = just("x").ignore_then(number()).filter(|n| *n <= 31);
 
     let zero = just("zero").map(|_| 0);
     let ra = just("ra").map(|_| 1);
@@ -19,20 +20,17 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let fp = just("fp").map(|_| 8);
 
     let temporary = just("t")
-        .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<usize>().unwrap())
+        .ignore_then(number::<usize>())
         .filter(|n| *n <= 6)
         .map(|n| if n <= 2 { n + 5 } else { n + 25 });
 
     let saved = just("s")
-        .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<usize>().unwrap())
+        .ignore_then(number::<usize>())
         .filter(|n| *n <= 11)
         .map(|n| if n <= 1 { n + 8 } else { n + 16 });
 
     let argument = just("a")
-        .ignore_then(text::int(10))
-        .map(|s: &'src str| s.parse::<usize>().unwrap())
+        .ignore_then(number::<usize>())
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
@@ -41,9 +39,8 @@ fn register<'src>() -> impl Parser<'src, &'src str, usize> {
 
 fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
-    let number = text::int(10).map(|s: &'src str| s.parse::<i32>().unwrap());
     sign.then_ignore(text::whitespace())
-        .then(number)
+        .then(number::<i32>())
         .filter(move |(_, n)| 0u32.leading_zeros() - n.leading_zeros() <= bits)
         .map(|(s, n)| s * n)
         .padded()
