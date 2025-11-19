@@ -79,7 +79,7 @@ fn itype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate(32)),
+                .then(immediate(12)),
         )
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
@@ -101,7 +101,7 @@ fn btype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate(32)),
+                .then(immediate(13)),
         )
         .map(move |([rs1, rs2], offset)| Instruction::BType {
             name,
@@ -168,7 +168,7 @@ fn jtype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate(32)),
+                .then(immediate(21)),
         )
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
@@ -187,7 +187,7 @@ fn utype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(",").padded())
-                .then(immediate(32)),
+                .then(immediate(20)),
         )
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
