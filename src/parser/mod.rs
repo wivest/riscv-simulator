@@ -87,8 +87,10 @@ fn itype<'src>(
 fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let addi = itype(IType::Addi, just("addi"));
     let lb = itype_load(IType::Lb, just("lb"));
+    let lh = itype_load(IType::Lh, just("lh"));
+    let lw = itype_load(IType::Lw, just("lw"));
 
-    choice((addi, lb))
+    choice((addi, lb, lh, lw))
 }
 
 fn btype<'src>(
