@@ -142,8 +142,10 @@ fn stype<'src>(
 
 fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let sb = stype(SType::Sb, just("sb"));
+    let sh = stype(SType::Sh, just("sh"));
+    let sw = stype(SType::Sw, just("sw"));
 
-    choice((sb,))
+    choice((sb, sh, sw))
 }
 
 fn itype_load<'src>(
