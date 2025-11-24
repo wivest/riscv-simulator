@@ -115,8 +115,9 @@ fn btype<'src>(
 
 fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let beq = btype(BType::Beq, just("beq"));
+    let bne = btype(BType::Bne, just("bne"));
 
-    choice((beq,))
+    choice((beq, bne))
 }
 
 fn stype<'src>(
