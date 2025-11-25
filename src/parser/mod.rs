@@ -127,11 +127,11 @@ fn stype<'src>(
     prefix
         .ignore_then(
             register()
-                .then_ignore(just(",").padded())
+                .then_ignore(just(","))
                 .then(immediate(32))
-                .then_ignore(just("(").padded())
+                .then_ignore(just("("))
                 .then(register())
-                .then_ignore(just(")").padded()),
+                .then_ignore(just(")")),
         )
         .map(move |((rs2, imm), rs1)| Instruction::SType {
             name,
@@ -156,11 +156,11 @@ fn itype_load<'src>(
     prefix
         .ignore_then(
             register()
-                .then_ignore(just(",").padded())
+                .then_ignore(just(","))
                 .then(immediate(32))
-                .then_ignore(just("(").padded())
+                .then_ignore(just("("))
                 .then(register())
-                .then_ignore(just(")").padded()),
+                .then_ignore(just(")")),
         )
         .map(move |((rd, imm), rs)| Instruction::IType { name, rd, rs, imm })
 }
@@ -170,11 +170,7 @@ fn jtype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(
-            register()
-                .then_ignore(just(",").padded())
-                .then(immediate(21)),
-        )
+        .ignore_then(register().then_ignore(just(",")).then(immediate(21)))
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
@@ -189,11 +185,7 @@ fn utype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(
-            register()
-                .then_ignore(just(",").padded())
-                .then(immediate(20)),
-        )
+        .ignore_then(register().then_ignore(just(",")).then(immediate(20)))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
