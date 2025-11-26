@@ -272,4 +272,10 @@ mod tests {
         let result = immediate(12).parse("4096");
         assert_eq!(result.has_errors(), true);
     }
+
+    #[test]
+    fn test_rtype() {
+        let result = rtype_instructions().parse("add x0, x1, x2");
+        assert_eq!(result.has_errors(), false);
+    }
 }
