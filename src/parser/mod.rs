@@ -276,6 +276,17 @@ mod tests {
     #[test]
     fn test_rtype() {
         let result = rtype_instructions().parse("add x0, x1, x2");
-        assert_eq!(result.has_errors(), false);
+        match result.unwrap() {
+            Instruction::RType { name, rd, rs1, rs2 } => {
+                match name {
+                    RType::Add => {}
+                    _ => panic!(),
+                }
+                assert_eq!(rd, 0);
+                assert_eq!(rs1, 1);
+                assert_eq!(rs2, 2);
+            }
+            _ => panic!(),
+        }
     }
 }
