@@ -1,11 +1,13 @@
-enum Pseudo {
-    Li { rd: usize, imm: i32 },
-}
+use super::{immediate, register};
+use chumsky::prelude::*;
+use instruction::Pseudo;
 
-impl Pseudo {
-    fn expand(self) -> String {
-        match self {
-            Self::Li { rd, imm } => "todo".to_owned(),
-        }
-    }
+mod instruction;
+
+fn utype<'src>(
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Pseudo> {
+    prefix
+        .ignore_then(register().then_ignore(just(",")).then(immediate(20)))
+        .map(move |(rd, imm)| Pseudo::Li { rd, imm })
 }
