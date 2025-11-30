@@ -5,7 +5,13 @@ pub enum Pseudo {
 impl Pseudo {
     pub fn expand(self) -> String {
         match self {
-            Self::Li { rd, imm } => "todo".to_owned(),
+            Self::Li { rd, imm } => format!(
+                "lui x{}, {}\naddi x{}, x0, {}",
+                rd,
+                imm >> 12,
+                rd,
+                imm << 20 >> 20
+            ),
         }
     }
 }
