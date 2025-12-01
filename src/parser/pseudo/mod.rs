@@ -1,6 +1,6 @@
 use super::{immediate, register};
 use chumsky::prelude::*;
-use instruction::Pseudo;
+pub use instruction::Pseudo;
 
 mod instruction;
 

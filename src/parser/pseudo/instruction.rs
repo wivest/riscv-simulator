@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Pseudo {
     Li { rd: usize, imm: i32 },
 }

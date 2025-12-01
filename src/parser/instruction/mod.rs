@@ -6,6 +6,8 @@ pub use rtype::RType;
 pub use stype::SType;
 pub use utype::UType;
 
+use super::pseudo::Pseudo;
+
 mod btype;
 mod itype;
 mod jtype;
@@ -49,6 +51,7 @@ pub enum Instruction {
         rd: usize,
         imm: i32,
     },
+    Pseudo(Pseudo),
 }
 
 impl Instruction {
@@ -70,6 +73,7 @@ impl Instruction {
             } => name.execute(cpu, rs1, rs2, imm),
             Instruction::JType { name, rd, imm } => name.execute(cpu, rd, imm),
             Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
+            Instruction::Pseudo(_) => todo!(),
         }
     }
 }
