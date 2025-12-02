@@ -4,6 +4,7 @@ use instruction::Instruction;
 use instruction::{BType, IType, JType, RType, SType, UType};
 
 pub mod instruction;
+mod line;
 mod pseudo;
 
 fn number<'src, T: std::str::FromStr>() -> impl Parser<'src, &'src str, T> {
