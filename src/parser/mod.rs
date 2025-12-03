@@ -214,6 +214,10 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     instruction.padded().repeated().collect()
 }
 
+pub fn pre_parse<'src>() -> impl Parser<'src, &'src str, ()> {
+    empty()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
