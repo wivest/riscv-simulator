@@ -1,11 +1,11 @@
 use chumsky::prelude::*;
 
-use instruction::Instruction;
-use instruction::{BType, IType, JType, RType, SType, UType};
+use real::instructions::Instruction;
+use real::instructions::{BType, IType, JType, RType, SType, UType};
 
-pub mod instruction;
 mod line;
 mod pseudo;
+pub mod real;
 
 fn number<'src, T: std::str::FromStr>() -> impl Parser<'src, &'src str, T> {
     text::int(10).map(|s: &'src str| s.parse::<T>().ok().unwrap())

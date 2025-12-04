@@ -1,5 +1,5 @@
-use crate::parser::instruction::Instruction;
 use crate::parser::pseudo::Pseudo;
+use crate::parser::real::instructions::Instruction;
 
 pub enum Line {
     Instruction(Instruction),
