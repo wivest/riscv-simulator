@@ -1,4 +1,4 @@
-use super::{immediate, register};
+use super::common::*;
 use chumsky::prelude::*;
 pub use instruction::Pseudo;
 
