@@ -156,7 +156,7 @@ fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     choice((li, lui, auipc))
 }
 
-pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
+pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();
@@ -164,11 +164,9 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let jtype_ins = jtype_instructions();
     let utype_ins = utype_instructions();
 
-    let instruction = choice((
+    choice((
         rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
-    ));
-
-    instruction.padded().repeated().collect()
+    ))
 }
 
 #[cfg(test)]
