@@ -15,7 +15,7 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     real_ins.padded().repeated().collect()
 }
 
-pub fn pre_parse<'src>() -> impl Parser<'src, &'src str, Vec<Line>> {
+pub fn pre_parser<'src>() -> impl Parser<'src, &'src str, Vec<Line>> {
     let real_ins = real::real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
     let lines = choice((real_ins, pseudo_ins));
