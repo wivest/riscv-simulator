@@ -50,10 +50,21 @@ pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
 
 pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
+    let dec = radix_immediate(10, bits);
+    let bin = just("0b").ignore_then(radix_immediate(2, bits));
+    let oct = just("0o").ignore_then(radix_immediate(8, bits));
+    let hex = just("0x").ignore_then(radix_immediate(16, bits));
+    let imm = choice((dec, bin, oct, hex));
+
     sign.then_ignore(text::whitespace())
-        .then(number::<i32>(10))
-        .filter(move |(_, n)| 0u32.leading_zeros() - n.leading_zeros() <= bits)
+        .then(imm)
         .map(|(s, n)| s * n)
+        .padded()
+}
+
+fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
+    number::<i32>(radix)
+        .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
         .padded()
 }
 
