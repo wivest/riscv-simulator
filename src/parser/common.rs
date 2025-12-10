@@ -1,7 +1,23 @@
 use chumsky::prelude::*;
 
-fn number<'src, T: std::str::FromStr>(radix: u32) -> impl Parser<'src, &'src str, T> {
-    text::int(radix).map(|s: &'src str| s.parse::<T>().ok().unwrap())
+trait FromStrRadix: Sized {
+    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError>;
+}
+
+impl FromStrRadix for usize {
+    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError> {
+        usize::from_str_radix(s, radix)
+    }
+}
+
+impl FromStrRadix for i32 {
+    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError> {
+        i32::from_str_radix(s, radix)
+    }
+}
+
+fn number<'src, T: FromStrRadix>(radix: u32) -> impl Parser<'src, &'src str, T> {
+    text::int(radix).map(move |s: &'src str| T::from_str_radix(s, radix).ok().unwrap())
 }
 
 pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
