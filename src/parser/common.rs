@@ -68,6 +68,15 @@ fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, 
         .padded()
 }
 
+fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
+    let content = text::newline()
+        .not()
+        .ignore_then(any())
+        .repeated()
+        .ignored();
+    choice((just("#"), just("//"))).ignore_then(content)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
