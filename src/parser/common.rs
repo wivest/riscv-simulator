@@ -17,7 +17,7 @@ impl FromStrRadix for i32 {
 }
 
 fn number<'src, T: FromStrRadix>(radix: u32) -> impl Parser<'src, &'src str, T> {
-    text::int(radix).map(move |s: &'src str| T::from_str_radix(s, radix).ok().unwrap())
+    text::int(radix).map(move |s: &'src str| T::from_str_radix(s, radix).unwrap())
 }
 
 pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
@@ -141,8 +141,7 @@ mod tests {
     #[test]
     fn test_immediate_base() {
         let result = immediate(32).parse("0b10");
-        let a = 0b10;
-        assert_eq!(result.unwrap(), a);
+        assert_eq!(result.unwrap(), 0b10);
         let result = immediate(32).parse("0o42");
         assert_eq!(result.unwrap(), 0o42);
         let result = immediate(32).parse("0x42");
