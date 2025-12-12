@@ -137,4 +137,15 @@ mod tests {
         let result = immediate(12).parse("4096");
         assert_eq!(result.has_errors(), true);
     }
+
+    #[test]
+    fn test_immediate_base() {
+        let result = immediate(32).parse("0b10");
+        let a = 0b10;
+        assert_eq!(result.unwrap(), a);
+        let result = immediate(32).parse("0o42");
+        assert_eq!(result.unwrap(), 0o42);
+        let result = immediate(32).parse("0x42");
+        assert_eq!(result.unwrap(), 0x42);
+    }
 }
