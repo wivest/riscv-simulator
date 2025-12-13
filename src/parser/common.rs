@@ -147,4 +147,14 @@ mod tests {
         let result = immediate(32).parse("0x42");
         assert_eq!(result.unwrap(), 0x42);
     }
+
+    #[test]
+    fn test_comment() {
+        let result = comment().parse("// this is slash comment");
+        assert_eq!(result.unwrap(), ());
+        let result = comment().parse("# this is hash comment");
+        assert_eq!(result.unwrap(), ());
+        let result = comment().parse("// this is\nnewline comment");
+        assert_eq!(result.has_errors(), true);
+    }
 }
