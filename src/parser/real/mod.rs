@@ -184,5 +184,7 @@ mod tests {
                 rs2: 2
             }
         );
+        let result = rtype_instructions().parse("add x0,\nx1, x2");
+        assert_eq!(result.has_errors(), true);
     }
 }
