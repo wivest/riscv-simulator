@@ -13,7 +13,7 @@ mod rtype;
 mod stype;
 mod utype;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Instruction {
     RType {
         name: RType,

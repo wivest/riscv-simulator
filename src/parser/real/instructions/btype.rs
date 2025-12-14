@@ -1,6 +1,6 @@
 use crate::processor::Processor;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BType {
     Beq,
     Bne,
