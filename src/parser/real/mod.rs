@@ -5,17 +5,6 @@ use instructions::{BType, IType, JType, RType, SType, UType};
 
 pub mod instructions;
 
-fn h_padded<'src>(
-    parser: impl Parser<'src, &'src str, Instruction>,
-) -> impl Parser<'src, &'src str, Instruction> {
-    let horizontal = text::newline()
-        .not()
-        .ignore_then(text::whitespace())
-        .repeated()
-        .ignored();
-    parser.padded_by(horizontal)
-}
-
 fn rtype<'src>(
     name: RType,
     prefix: impl Parser<'src, &'src str, &'src str>,

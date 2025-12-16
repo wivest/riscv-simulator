@@ -1,3 +1,5 @@
+use crate::parser::real::instructions::Instruction;
+
 use chumsky::prelude::*;
 
 trait FromStrRadix: Sized {
@@ -66,6 +68,17 @@ fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, 
     number::<i32>(radix)
         .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
         .padded()
+}
+
+fn h_padded<'src>(
+    parser: impl Parser<'src, &'src str, Instruction>,
+) -> impl Parser<'src, &'src str, Instruction> {
+    let h_whitespace = text::newline()
+        .not()
+        .ignore_then(text::whitespace())
+        .repeated()
+        .ignored();
+    parser.padded_by(choice((comment(), h_whitespace)))
 }
 
 fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
