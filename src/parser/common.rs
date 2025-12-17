@@ -93,6 +93,7 @@ fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::parser::real::real_instructions;
 
     #[test]
     fn test_register_x() {
@@ -169,5 +170,12 @@ mod tests {
         assert_eq!(result.unwrap(), ());
         let result = comment().parse("// this is\nnewline comment");
         assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_h_padded() {
+        let instr = real_instructions();
+        let result = h_padded(instr).parse("  add x0, x1, x2 # comment");
+        assert_eq!(result.has_output(), true);
     }
 }
