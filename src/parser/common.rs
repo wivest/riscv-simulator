@@ -75,7 +75,7 @@ fn h_padded<'src>(
 ) -> impl Parser<'src, &'src str, Instruction> {
     let h_whitespace = text::newline()
         .not()
-        .ignore_then(text::whitespace())
+        .ignore_then(text::whitespace().exactly(1))
         .repeated()
         .ignored();
     parser.padded_by(choice((comment(), h_whitespace)))
@@ -174,8 +174,11 @@ mod tests {
 
     #[test]
     fn test_h_padded() {
-        let instr = real_instructions();
-        let result = h_padded(instr).parse("  add x0, x1, x2 # comment");
+        let result = h_padded(real_instructions()).parse("  add x0, x1, x2  ");
         assert_eq!(result.has_output(), true);
+        let result = h_padded(real_instructions()).parse("  add x0, x1, x2 # comment");
+        assert_eq!(result.has_output(), true);
+        let result = h_padded(real_instructions()).parse(" \nadd x0, x1, x2\n# comment");
+        assert_eq!(result.has_errors(), true);
     }
 }
