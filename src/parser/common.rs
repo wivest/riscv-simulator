@@ -70,9 +70,7 @@ fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, 
         .padded()
 }
 
-fn h_padded<'src>(
-    parser: impl Parser<'src, &'src str, Instruction>,
-) -> impl Parser<'src, &'src str, Instruction> {
+fn h_padded<'src, O>(parser: impl Parser<'src, &'src str, O>) -> impl Parser<'src, &'src str, O> {
     let h_whitespace = text::newline()
         .not()
         .ignore_then(text::whitespace().exactly(1))
