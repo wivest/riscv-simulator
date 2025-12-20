@@ -77,7 +77,7 @@ pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
             .ignore_then(text::whitespace().exactly(1))
             .repeated()
             .ignored();
-        self.padded_by(choice((comment(), h_whitespace)))
+        self.padded_by(h_whitespace.then(comment().or_not()))
     }
 }
 
