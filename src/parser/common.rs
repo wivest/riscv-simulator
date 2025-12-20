@@ -178,6 +178,9 @@ mod tests {
     fn test_h_padded() {
         let result = just("just").h_padded().parse(" \njust\n ");
         assert_eq!(result.has_errors(), true);
+        let result = just("just").h_padded().parse("  just # comment");
+        assert_eq!(result.has_output(), true);
+        assert_eq!(result.unwrap(), "just");
         let result = real_instructions()
             .h_padded()
             .parse("  add x0, x1, x2 # comment");
