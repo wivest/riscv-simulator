@@ -70,14 +70,18 @@ fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, 
         .padded()
 }
 
-fn h_padded<'src, O>(parser: impl Parser<'src, &'src str, O>) -> impl Parser<'src, &'src str, O> {
-    let h_whitespace = text::newline()
-        .not()
-        .ignore_then(text::whitespace().exactly(1))
-        .repeated()
-        .ignored();
-    parser.padded_by(choice((comment(), h_whitespace)))
+pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
+    fn h_padded(self) -> impl Parser<'src, &'src str, O> {
+        let h_whitespace = text::newline()
+            .not()
+            .ignore_then(text::whitespace().exactly(1))
+            .repeated()
+            .ignored();
+        self.padded_by(choice((comment(), h_whitespace)))
+    }
 }
+
+impl<'src, O, P> HPadded<'src, O> for P where P: Parser<'src, &'src str, O> {}
 
 fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
     let content = text::newline()
@@ -172,11 +176,11 @@ mod tests {
 
     #[test]
     fn test_h_padded() {
-        let result = h_padded(real_instructions()).parse("  add x0, x1, x2  ");
-        assert_eq!(result.has_output(), true);
-        let result = h_padded(real_instructions()).parse("  add x0, x1, x2 # comment");
-        assert_eq!(result.has_output(), true);
-        let result = h_padded(real_instructions()).parse(" \nadd x0, x1, x2\n# comment");
+        let result = just("just").h_padded().parse(" \njust\n ");
         assert_eq!(result.has_errors(), true);
+        let result = real_instructions()
+            .h_padded()
+            .parse("  add x0, x1, x2 # comment");
+        assert_eq!(result.has_output(), true);
     }
 }
