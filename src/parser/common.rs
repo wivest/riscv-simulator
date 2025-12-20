@@ -47,7 +47,7 @@ pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
-    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument)).padded()
+    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument)).h_padded()
 }
 
 pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
@@ -61,13 +61,13 @@ pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     sign.then_ignore(text::whitespace())
         .then(imm)
         .map(|(s, n)| s * n)
-        .padded()
+        .h_padded()
 }
 
 fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
     number::<i32>(radix)
         .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
-        .padded()
+        .h_padded()
 }
 
 pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
