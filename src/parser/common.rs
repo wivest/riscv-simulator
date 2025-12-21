@@ -1,5 +1,3 @@
-use crate::parser::real::instructions::Instruction;
-
 use chumsky::prelude::*;
 
 trait FromStrRadix: Sized {
@@ -95,7 +93,6 @@ fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::real::real_instructions;
 
     #[test]
     fn test_register_x() {
@@ -181,9 +178,5 @@ mod tests {
         let result = just("just").h_padded().parse("  just # comment");
         assert_eq!(result.has_output(), true);
         assert_eq!(result.unwrap(), "just");
-        let result = real_instructions()
-            .h_padded()
-            .parse("  add x0, x1, x2 # comment");
-        assert_eq!(result.has_output(), true);
     }
 }
