@@ -1,7 +1,9 @@
-use crate::parser::pseudo::Pseudo;
-use crate::parser::real::instructions::Instruction;
+use super::label::Label;
+use super::pseudo::Pseudo;
+use super::real::instructions::Instruction;
 
 pub enum Line {
     Instruction(Instruction),
     Pseudo(Pseudo),
+    Label(Label),
 }

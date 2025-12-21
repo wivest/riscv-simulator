@@ -4,6 +4,7 @@ use real::instructions::Instruction;
 use crate::parser::line::Line;
 
 mod common;
+mod label;
 mod line;
 mod pseudo;
 pub mod real;
@@ -19,6 +20,7 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
             acc.extend(match l {
                 Line::Instruction(r) => vec![r],
                 Line::Pseudo(p) => p.expand(),
+                Line::Label(_) => todo!(),
             });
             acc
         })
