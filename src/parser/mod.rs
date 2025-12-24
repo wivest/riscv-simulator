@@ -4,6 +4,7 @@ use real::instructions::Instruction;
 use crate::parser::line::Line;
 
 mod common;
+mod immediate;
 mod label;
 mod line;
 mod pseudo;
