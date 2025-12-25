@@ -1,6 +1,6 @@
 use super::label::Label;
 
-enum Immediate {
-    Value(usize),
+pub enum Immediate {
+    Value(i32),
     Label(Label),
 }

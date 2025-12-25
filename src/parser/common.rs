@@ -1,3 +1,4 @@
+use super::immediate::Immediate;
 use chumsky::prelude::*;
 
 trait FromStrRadix: Sized {
@@ -46,6 +47,10 @@ pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
         .map(|n| n + 10);
 
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument)).h_padded()
+}
+
+pub fn immediate_enum<'src>(bits: u32) -> impl Parser<'src, &'src str, Immediate> {
+    immediate(bits).map(|n| Immediate::Value(n))
 }
 
 pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
