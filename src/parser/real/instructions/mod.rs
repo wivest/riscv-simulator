@@ -1,4 +1,4 @@
-use crate::processor::Processor;
+use crate::{parser::immediate::Immediate, processor::Processor};
 pub use btype::BType;
 pub use itype::IType;
 pub use jtype::JType;
@@ -48,6 +48,15 @@ pub enum Instruction {
         name: JType,
         rd: usize,
         imm: i32,
+    },
+}
+
+pub enum InstructionExtra {
+    IType {
+        name: IType,
+        rd: usize,
+        rs: usize,
+        imm: Immediate,
     },
 }
 
