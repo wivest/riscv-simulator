@@ -1,3 +1,5 @@
+use crate::parser::label::Label;
+
 use super::immediate::Immediate;
 use chumsky::prelude::*;
 
@@ -71,6 +73,14 @@ fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, 
     number::<i32>(radix)
         .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
         .h_padded()
+}
+
+pub fn label_str<'src>() -> impl Parser<'src, &'src str, &'src str> {
+    text::ascii::ident()
+}
+
+pub fn label_str_def<'src>() -> impl Parser<'src, &'src str, &'src str> {
+    text::ascii::ident().then_ignore(just(":"))
 }
 
 pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
