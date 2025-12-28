@@ -1,4 +1,4 @@
-pub struct Label {
-    name: String,
-    line: usize,
+pub enum Label {
+    Reference(String),
+    Definition(usize),
 }
