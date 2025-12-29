@@ -1,14 +1,19 @@
 use chumsky::prelude::*;
+use label::Label;
+use pseudo::Pseudo;
 use real::instructions::Instruction;
-
-use crate::parser::line::Line;
 
 mod common;
 mod immediate;
 mod label;
-mod line;
 mod pseudo;
 pub mod real;
+
+pub enum Line {
+    Instruction(Instruction),
+    Pseudo(Pseudo),
+    Label(Label),
+}
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
     let real_ins = real::real_instructions().map(|r| Line::Instruction(r));
