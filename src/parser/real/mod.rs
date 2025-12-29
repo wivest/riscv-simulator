@@ -102,6 +102,13 @@ fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     choice((beq, bne))
 }
 
+fn btype_instructions_extra<'src>() -> impl Parser<'src, &'src str, InstructionExtra> {
+    let beq = btype_label(BType::Beq, just("beq"));
+    let bne = btype_label(BType::Bne, just("bne"));
+
+    choice((beq, bne))
+}
+
 fn stype<'src>(
     name: SType,
     prefix: impl Parser<'src, &'src str, &'src str>,
@@ -189,6 +196,12 @@ pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     choice((
         rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
     ))
+}
+
+pub fn real_instructions_extra<'src>() -> impl Parser<'src, &'src str, InstructionExtra> {
+    let btype_ins = btype_instructions_extra();
+
+    choice((btype_ins,))
 }
 
 #[cfg(test)]
