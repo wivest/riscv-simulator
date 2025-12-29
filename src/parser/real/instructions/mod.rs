@@ -52,11 +52,11 @@ pub enum Instruction {
 }
 
 pub enum InstructionExtra {
-    IType {
-        name: IType,
-        rd: usize,
-        rs: usize,
-        imm: Immediate,
+    BType {
+        name: BType,
+        rs1: usize,
+        rs2: usize,
+        offset: Immediate,
     },
 }
 

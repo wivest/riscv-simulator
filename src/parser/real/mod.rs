@@ -1,4 +1,7 @@
 use super::common::*;
+use crate::parser::immediate::Immediate;
+use crate::parser::label::Label;
+use crate::parser::real::instructions::InstructionExtra;
 use chumsky::prelude::*;
 use instructions::Instruction;
 use instructions::{BType, IType, JType, RType, SType, UType};
@@ -69,6 +72,26 @@ fn btype<'src>(
             rs1,
             rs2,
             offset,
+        })
+}
+
+fn btype_label<'src>(
+    name: BType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, InstructionExtra> {
+    prefix
+        .ignore_then(
+            register()
+                .separated_by(just(","))
+                .collect_exactly::<[_; 2]>()
+                .then_ignore(just(","))
+                .then(label_str()),
+        )
+        .map(move |([rs1, rs2], label)| InstructionExtra::BType {
+            name,
+            rs1,
+            rs2,
+            offset: Immediate::Label(Label::Reference(label.to_owned())),
         })
 }
 
