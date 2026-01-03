@@ -1,10 +1,10 @@
 use super::common::*;
+use crate::instructions::{BType, IType, JType, RType, SType, UType};
 use crate::parser::immediate::Immediate;
 use crate::parser::label::Label;
 use crate::parser::real::instructions::InstructionExtra;
 use chumsky::prelude::*;
 use instructions::Instruction;
-use instructions::{BType, IType, JType, RType, SType, UType};
 
 pub mod instructions;
 

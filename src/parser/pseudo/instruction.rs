@@ -1,4 +1,5 @@
-use crate::parser::real::instructions::{IType, Instruction, UType};
+use crate::instructions::{IType, UType};
+use crate::parser::real::instructions::Instruction;
 
 #[derive(Debug)]
 pub enum Pseudo {

@@ -3,6 +3,7 @@ use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
+mod instructions;
 mod parser;
 mod processor;
 
