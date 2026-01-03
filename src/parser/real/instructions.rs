@@ -1,5 +1,5 @@
 use crate::instructions::*;
-use crate::{parser::immediate::Immediate, processor::Processor};
+use crate::parser::immediate::Immediate;
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
@@ -46,27 +46,4 @@ pub enum InstructionExtra {
         rs2: usize,
         offset: Immediate,
     },
-}
-
-impl Instruction {
-    pub fn execute(&self, cpu: &mut Processor) {
-        match *self {
-            Instruction::RType { name, rd, rs1, rs2 } => name.execute(cpu, rd, rs1, rs2),
-            Instruction::IType { name, rd, rs, imm } => name.execute(cpu, rd, rs, imm),
-            Instruction::BType {
-                name,
-                rs1,
-                rs2,
-                offset,
-            } => name.execute(cpu, rs1, rs2, offset),
-            Instruction::SType {
-                name,
-                rs1,
-                rs2,
-                imm,
-            } => name.execute(cpu, rs1, rs2, imm),
-            Instruction::JType { name, rd, imm } => name.execute(cpu, rd, imm),
-            Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
-        }
-    }
 }

@@ -1,9 +1,11 @@
 use chumsky::Parser;
+use linker::translate;
 use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
 mod instructions;
+mod linker;
 mod parser;
 mod processor;
 
@@ -22,7 +24,7 @@ fn main() {
         match result {
             Ok(instructions) => {
                 let mut proc = Processor::new();
-                proc.execute(instructions);
+                proc.execute(translate(instructions));
                 println!("{:?}", proc.memory);
             }
             Err(err) => println!("{err:?}"),

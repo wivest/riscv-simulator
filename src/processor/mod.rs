@@ -1,5 +1,7 @@
-use crate::parser::real::instructions::Instruction;
+use instructions::Instruction;
 use std::collections::HashMap;
+
+pub mod instructions;
 
 pub struct Processor {
     pub pc: usize,
