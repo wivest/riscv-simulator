@@ -1,6 +1,5 @@
 use chumsky::prelude::*;
 use label::Label;
-use pseudo::Pseudo;
 use real::instructions::{Instruction, InstructionExtra};
 
 mod common;
@@ -12,7 +11,7 @@ pub mod real;
 pub enum Line {
     Instruction(Instruction),
     InstructionExtra(InstructionExtra),
-    Pseudo(Pseudo),
+    Pseudo(Vec<Instruction>),
     Label(Label),
 }
 
@@ -28,7 +27,7 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
             acc.extend(match l {
                 Line::Instruction(r) => vec![r],
                 Line::InstructionExtra(_) => todo!(),
-                Line::Pseudo(p) => p.expand(),
+                Line::Pseudo(p) => p,
                 Line::Label(_) => todo!(),
             });
             acc
