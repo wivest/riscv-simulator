@@ -1,11 +1,5 @@
+use super::SType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum SType {
-    Sb,
-    Sh,
-    Sw,
-}
 
 impl SType {
     pub fn execute(&self, cpu: &mut Processor, rs1: usize, rs2: usize, imm: i32) {

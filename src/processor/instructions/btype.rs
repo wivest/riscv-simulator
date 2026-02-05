@@ -1,10 +1,5 @@
+use super::BType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BType {
-    Beq,
-    Bne,
-}
 
 impl BType {
     pub fn execute(&self, cpu: &mut Processor, rs1: usize, rs2: usize, offset: i32) {

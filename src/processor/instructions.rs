@@ -1,6 +1,13 @@
 use super::Processor;
 use crate::instructions::*;
 
+mod btype;
+mod itype;
+mod jtype;
+mod rtype;
+mod stype;
+mod utype;
+
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     RType {

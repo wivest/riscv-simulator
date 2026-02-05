@@ -1,9 +1,5 @@
+use super::JType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum JType {
-    Jal,
-}
 
 impl JType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {

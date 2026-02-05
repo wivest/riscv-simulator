@@ -1,13 +1,5 @@
+use super::RType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RType {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-}
 
 impl RType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs1: usize, rs2: usize) {

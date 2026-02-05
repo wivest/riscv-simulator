@@ -1,10 +1,5 @@
+use super::UType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum UType {
-    Lui,
-    Auipc,
-}
 
 impl UType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, imm: i32) {

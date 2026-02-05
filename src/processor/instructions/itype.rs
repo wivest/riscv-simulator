@@ -1,12 +1,5 @@
+use super::IType;
 use crate::processor::Processor;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum IType {
-    Addi,
-    Lb,
-    Lh,
-    Lw,
-}
 
 impl IType {
     pub fn execute(&self, cpu: &mut Processor, rd: usize, rs: usize, imm: i32) {
