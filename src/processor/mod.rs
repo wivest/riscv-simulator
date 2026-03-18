@@ -1,11 +1,12 @@
 use instructions::Instruction;
-use std::collections::HashMap;
+use memory::Memory;
 
 pub mod instructions;
+pub mod memory;
 
 pub struct Processor {
     pub pc: usize,
-    pub memory: HashMap<usize, u8>,
+    pub memory: Memory,
     registers: [i32; 32],
 }
 
@@ -14,7 +15,7 @@ impl Processor {
         Processor {
             pc: 0,
             registers: [0; 32],
-            memory: HashMap::new(),
+            memory: Memory::new(),
         }
     }
 
