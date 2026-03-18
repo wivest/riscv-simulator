@@ -1,5 +1,4 @@
 use chumsky::Parser;
-use linker::translate;
 use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
@@ -22,9 +21,10 @@ fn main() {
     if let Ok(content) = open_file(path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok(instructions) => {
+            Ok(instrs) => {
                 let mut proc = Processor::new();
-                proc.execute(translate(instructions));
+                proc.store_instrs(linker::translate(instrs), 1024);
+                proc.execute(1024);
                 println!("{:?}", proc.memory);
             }
             Err(err) => println!("{err:?}"),

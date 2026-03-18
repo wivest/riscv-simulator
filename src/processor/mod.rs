@@ -29,11 +29,20 @@ impl Processor {
         };
     }
 
-    pub fn execute(&mut self, instructions: Vec<Instruction>) {
-        while self.pc / 4 < instructions.len() {
-            let instruction = instructions.get(self.pc / 4).unwrap();
-            println!("{instruction:?}");
-            instruction.execute(self);
+    pub fn store_instrs(&mut self, instrs: Vec<Instruction>, offset: usize) {
+        for (i, instr) in instrs.into_iter().enumerate() {
+            self.memory.store_instr(offset + i * 4, instr);
+        }
+    }
+
+    pub fn execute(&mut self, offset: usize) {
+        self.pc = offset;
+        loop {
+            let Some(instr) = self.memory.load_instr(self.pc) else {
+                break;
+            };
+            println!("{instr:?}");
+            instr.execute(self);
         }
     }
 }

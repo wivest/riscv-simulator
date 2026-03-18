@@ -8,7 +8,7 @@ mod rtype;
 mod stype;
 mod utype;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub enum Instruction {
     RType {
         name: RType,
