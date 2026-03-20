@@ -6,10 +6,6 @@ pub enum Label {
     Definition(usize),
 }
 
-pub fn label_str<'src>() -> impl Parser<'src, &'src str, &'src str> {
-    text::ascii::ident()
-}
-
-pub fn label_str_def<'src>() -> impl Parser<'src, &'src str, &'src str> {
-    text::ascii::ident().then_ignore(just(":"))
+pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Label> {
+    text::ascii::ident().map(|label: &str| Label::Reference(label.to_owned()))
 }

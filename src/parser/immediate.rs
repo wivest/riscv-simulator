@@ -1,5 +1,5 @@
 use super::common::*;
-use super::label::Label;
+use super::label::*;
 use chumsky::prelude::*;
 
 #[derive(Debug, PartialEq)]
@@ -8,8 +8,10 @@ pub enum Immediate {
     Label(Label),
 }
 
-pub fn immediate_enum<'src>(bits: u32) -> impl Parser<'src, &'src str, Immediate> {
-    immediate(bits).map(|n| Immediate::Value(n))
+fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
+    number::<i32>(radix)
+        .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
+        .h_padded()
 }
 
 pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
@@ -26,10 +28,10 @@ pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
         .h_padded()
 }
 
-fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
-    number::<i32>(radix)
-        .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
-        .h_padded()
+pub fn offset<'src>(bits: u32) -> impl Parser<'src, &'src str, Immediate> {
+    let imm = immediate(bits).map(|imm| Immediate::Value(imm));
+    let label = label_ref().map(|label| Immediate::Label(label));
+    choice((imm, label))
 }
 
 #[cfg(test)]

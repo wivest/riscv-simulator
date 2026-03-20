@@ -84,13 +84,13 @@ fn btype_label<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(label_str()),
+                .then(label_ref()),
         )
         .map(move |([rs1, rs2], label)| Instruction::BType {
             name,
             rs1,
             rs2,
-            offset: Immediate::Label(Label::Reference(label.to_owned())),
+            offset: Immediate::Label(label),
         })
 }
 
