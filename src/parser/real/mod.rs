@@ -159,7 +159,11 @@ fn jtype<'src>(
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
         .ignore_then(register().then_ignore(just(",")).then(immediate(21)))
-        .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
+        .map(move |(rd, imm)| Instruction::JType {
+            name,
+            rd,
+            imm: Immediate::Value(imm),
+        })
 }
 
 fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {

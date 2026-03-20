@@ -35,6 +35,6 @@ pub enum Instruction {
     JType {
         name: JType,
         rd: usize,
-        imm: i32,
+        imm: Immediate,
     },
 }

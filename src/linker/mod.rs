@@ -18,7 +18,11 @@ pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
                 offset,
             },
             ParsInstr::IType { name, rd, rs, imm } => ProcInstr::IType { name, rd, rs, imm },
-            ParsInstr::JType { name, rd, imm } => ProcInstr::JType { name, rd, imm },
+            ParsInstr::JType {
+                name,
+                rd,
+                imm: Immediate::Value(imm),
+            } => ProcInstr::JType { name, rd, imm },
             ParsInstr::RType { name, rd, rs1, rs2 } => ProcInstr::RType { name, rd, rs1, rs2 },
             ParsInstr::SType {
                 name,
