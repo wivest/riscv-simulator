@@ -1,5 +1,6 @@
-use super::common::*;
+use super::immediate::*;
 use super::real::instructions::Instruction;
+use super::register::*;
 use crate::names::*;
 use chumsky::prelude::*;
 

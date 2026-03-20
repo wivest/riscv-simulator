@@ -7,6 +7,7 @@ pub mod immediate;
 mod label;
 mod pseudo;
 pub mod real;
+mod register;
 
 pub enum Line {
     Instruction(Instruction),

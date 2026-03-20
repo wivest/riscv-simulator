@@ -1,6 +1,6 @@
-use super::common::*;
-use super::immediate::Immediate;
-use super::label::Label;
+use super::immediate::*;
+use super::label::*;
+use super::register::*;
 use crate::names::*;
 use chumsky::prelude::*;
 use instructions::Instruction;
