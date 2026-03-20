@@ -1,5 +1,5 @@
 use super::Processor;
-use crate::instructions::*;
+use crate::names::*;
 
 mod btype;
 mod itype;

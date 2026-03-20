@@ -1,3 +1,4 @@
+use crate::parser::immediate::Immediate;
 use crate::parser::real::instructions::Instruction as ParsInstr;
 use crate::processor::instructions::Instruction as ProcInstr;
 
@@ -9,7 +10,7 @@ pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
                 name,
                 rs1,
                 rs2,
-                offset,
+                offset: Immediate::Value(offset),
             } => ProcInstr::BType {
                 name,
                 rs1,
@@ -31,6 +32,7 @@ pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
                 imm,
             },
             ParsInstr::UType { name, rd, imm } => ProcInstr::UType { name, rd, imm },
+            _ => todo!(), // TODO: resolve labels
         })
         .collect()
 }

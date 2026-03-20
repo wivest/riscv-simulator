@@ -1,4 +1,4 @@
-use crate::instructions::*;
+use crate::names::*;
 use crate::parser::immediate::Immediate;
 
 #[derive(Debug, PartialEq)]
@@ -19,7 +19,7 @@ pub enum Instruction {
         name: BType,
         rs1: usize,
         rs2: usize,
-        offset: i32,
+        offset: Immediate,
     },
     SType {
         name: SType,
@@ -36,14 +36,5 @@ pub enum Instruction {
         name: JType,
         rd: usize,
         imm: i32,
-    },
-}
-
-pub enum InstructionExtra {
-    BType {
-        name: BType,
-        rs1: usize,
-        rs2: usize,
-        offset: Immediate,
     },
 }

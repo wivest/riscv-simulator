@@ -1,8 +1,7 @@
 use super::common::*;
-use crate::instructions::{BType, IType, JType, RType, SType, UType};
-use crate::parser::immediate::Immediate;
-use crate::parser::label::Label;
-use crate::parser::real::instructions::InstructionExtra;
+use super::immediate::Immediate;
+use super::label::Label;
+use crate::names::*;
 use chumsky::prelude::*;
 use instructions::Instruction;
 
@@ -71,14 +70,14 @@ fn btype<'src>(
             name,
             rs1,
             rs2,
-            offset,
+            offset: Immediate::Value(offset),
         })
 }
 
 fn btype_label<'src>(
     name: BType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, InstructionExtra> {
+) -> impl Parser<'src, &'src str, Instruction> {
     prefix
         .ignore_then(
             register()
@@ -87,7 +86,7 @@ fn btype_label<'src>(
                 .then_ignore(just(","))
                 .then(label_str()),
         )
-        .map(move |([rs1, rs2], label)| InstructionExtra::BType {
+        .map(move |([rs1, rs2], label)| Instruction::BType {
             name,
             rs1,
             rs2,
@@ -102,7 +101,7 @@ fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     choice((beq, bne))
 }
 
-fn btype_instructions_extra<'src>() -> impl Parser<'src, &'src str, InstructionExtra> {
+fn btype_instructions_label<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let beq = btype_label(BType::Beq, just("beq"));
     let bne = btype_label(BType::Bne, just("bne"));
 
@@ -189,19 +188,20 @@ pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();
+    let btype_label_ins = btype_instructions_label();
     let stype_ins = stype_instructions();
     let jtype_ins = jtype_instructions();
     let utype_ins = utype_instructions();
 
     choice((
-        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
+        rtype_ins,
+        itype_ins,
+        btype_ins,
+        btype_label_ins,
+        stype_ins,
+        jtype_ins,
+        utype_ins,
     ))
-}
-
-pub fn real_instructions_extra<'src>() -> impl Parser<'src, &'src str, InstructionExtra> {
-    let btype_ins = btype_instructions_extra();
-
-    choice((btype_ins,))
 }
 
 #[cfg(test)]

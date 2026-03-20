@@ -1,6 +1,6 @@
 use super::common::*;
 use super::real::instructions::Instruction;
-use crate::instructions::*;
+use crate::names::*;
 use chumsky::prelude::*;
 
 pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
