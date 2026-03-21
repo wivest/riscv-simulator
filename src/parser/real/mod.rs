@@ -64,46 +64,19 @@ fn btype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate(13)),
+                .then(offset(13)),
         )
         .map(move |([rs1, rs2], offset)| Instruction::BType {
             name,
             rs1,
             rs2,
-            offset: Immediate::Value(offset),
-        })
-}
-
-fn btype_label<'src>(
-    name: BType,
-    prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
-    prefix
-        .ignore_then(
-            register()
-                .separated_by(just(","))
-                .collect_exactly::<[_; 2]>()
-                .then_ignore(just(","))
-                .then(label_ref()),
-        )
-        .map(move |([rs1, rs2], label)| Instruction::BType {
-            name,
-            rs1,
-            rs2,
-            offset: Immediate::Label(label),
+            offset,
         })
 }
 
 fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let beq = btype(BType::Beq, just("beq"));
     let bne = btype(BType::Bne, just("bne"));
-
-    choice((beq, bne))
-}
-
-fn btype_instructions_label<'src>() -> impl Parser<'src, &'src str, Instruction> {
-    let beq = btype_label(BType::Beq, just("beq"));
-    let bne = btype_label(BType::Bne, just("bne"));
 
     choice((beq, bne))
 }
@@ -158,12 +131,8 @@ fn jtype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction> {
     prefix
-        .ignore_then(register().then_ignore(just(",")).then(immediate(21)))
-        .map(move |(rd, imm)| Instruction::JType {
-            name,
-            rd,
-            imm: Immediate::Value(imm),
-        })
+        .ignore_then(register().then_ignore(just(",")).then(offset(21)))
+        .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
 fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
@@ -192,19 +161,12 @@ pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();
-    let btype_label_ins = btype_instructions_label();
     let stype_ins = stype_instructions();
     let jtype_ins = jtype_instructions();
     let utype_ins = utype_instructions();
 
     choice((
-        rtype_ins,
-        itype_ins,
-        btype_ins,
-        btype_label_ins,
-        stype_ins,
-        jtype_ins,
-        utype_ins,
+        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
     ))
 }
 
