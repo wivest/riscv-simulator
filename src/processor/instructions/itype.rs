@@ -28,6 +28,7 @@ impl IType {
             IType::Jalr => {
                 cpu.set_reg(rd, cpu.pc as i32 + 4);
                 cpu.pc = (cpu.get_reg(rs) + imm) as usize;
+                return;
             }
         }
         cpu.pc += 4;

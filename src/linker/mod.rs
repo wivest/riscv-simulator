@@ -7,7 +7,8 @@ use std::collections::HashMap;
 pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Vec<ProcInstr> {
     instrs
         .iter()
-        .map(|i| match *i {
+        .enumerate()
+        .map(|(i, instr)| match *instr {
             ParsInstr::BType {
                 name,
                 rs1,
@@ -16,7 +17,7 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
             } => {
                 let offset = match offset {
                     Immediate::Label(Reference(l)) => {
-                        *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4
+                        (*defs.get(&Definition(l)).unwrap_or(&0) as i32 - i as i32) * 4
                     }
                     Immediate::Value(v) => v,
                 };
@@ -31,7 +32,7 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
             ParsInstr::JType { name, rd, imm } => {
                 let imm = match imm {
                     Immediate::Label(Reference(l)) => {
-                        *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4
+                        (*defs.get(&Definition(l)).unwrap_or(&0) as i32 - i as i32) * 4
                     }
                     Immediate::Value(v) => v,
                 };
