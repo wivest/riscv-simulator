@@ -10,6 +10,7 @@ pub enum IType {
     Lb,
     Lh,
     Lw,
+    Jalr,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

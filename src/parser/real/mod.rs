@@ -44,13 +44,30 @@ fn itype<'src>(
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
 
+fn itype_load<'src>(
+    name: IType,
+    prefix: impl Parser<'src, &'src str, &'src str>,
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
+    prefix
+        .ignore_then(
+            register()
+                .then_ignore(just(","))
+                .then(immediate(32))
+                .then_ignore(just("("))
+                .then(register())
+                .then_ignore(just(")")),
+        )
+        .map(move |((rd, imm), rs)| Instruction::IType { name, rd, rs, imm })
+}
+
 fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let addi = itype(IType::Addi, just("addi"));
+    let jalr = itype(IType::Jalr, just("jalr"));
     let lb = itype_load(IType::Lb, just("lb"));
     let lh = itype_load(IType::Lh, just("lh"));
     let lw = itype_load(IType::Lw, just("lw"));
 
-    choice((addi, lb, lh, lw))
+    choice((addi, jalr, lb, lh, lw))
 }
 
 fn btype<'src>(
@@ -107,22 +124,6 @@ fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>>
     let sw = stype(SType::Sw, just("sw"));
 
     choice((sb, sh, sw))
-}
-
-fn itype_load<'src>(
-    name: IType,
-    prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
-    prefix
-        .ignore_then(
-            register()
-                .then_ignore(just(","))
-                .then(immediate(32))
-                .then_ignore(just("("))
-                .then(register())
-                .then_ignore(just(")")),
-        )
-        .map(move |((rd, imm), rs)| Instruction::IType { name, rd, rs, imm })
 }
 
 fn jtype<'src>(

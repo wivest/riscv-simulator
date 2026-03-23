@@ -25,6 +25,10 @@ impl IType {
                 let word = byte3 << 24 + byte2 << 16 + byte1 << 8 + byte0;
                 cpu.set_reg(rd, word);
             }
+            IType::Jalr => {
+                cpu.set_reg(rd, cpu.pc as i32 + 4);
+                cpu.pc = (cpu.get_reg(rs) + imm) as usize;
+            }
         }
         cpu.pc += 4;
     }
