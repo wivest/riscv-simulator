@@ -16,9 +16,11 @@ fn open_file(path: &str) -> Result<String, Error> {
 }
 
 fn main() {
-    let path = "examples/source.asm";
+    let path = std::env::args()
+        .nth(1)
+        .unwrap_or("examples/source.asm".to_owned());
 
-    if let Ok(content) = open_file(path) {
+    if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
             Ok(instrs) => {
