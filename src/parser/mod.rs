@@ -1,5 +1,5 @@
 use chumsky::prelude::*;
-use label::Label;
+use label::*;
 use real::instructions::Instruction;
 
 mod common;
@@ -12,7 +12,7 @@ mod register;
 pub enum Line {
     Instruction(Instruction),
     Pseudo(Vec<Instruction>),
-    Label(Label),
+    Label(Definition),
 }
 
 pub fn program<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {

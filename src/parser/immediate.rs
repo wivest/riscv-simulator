@@ -5,7 +5,7 @@ use chumsky::prelude::*;
 #[derive(Debug, PartialEq)]
 pub enum Immediate {
     Value(i32),
-    Label(Label),
+    Label(Reference),
 }
 
 fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
