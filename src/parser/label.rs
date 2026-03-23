@@ -1,23 +1,23 @@
 use crate::parser::common::HPadded;
 use chumsky::prelude::*;
 
-#[derive(Debug, PartialEq)]
-pub struct Reference(String);
-#[derive(Debug, PartialEq)]
-pub struct Definition(String);
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Reference<'a>(pub &'a str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Definition<'a>(pub &'a str);
 
-pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Reference> {
+pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Reference<'src>> {
     text::ascii::ident()
         .h_padded()
-        .map(|label: &str| Reference(label.to_owned()))
+        .map(|label: &str| Reference(label))
 }
 
-pub fn label_def<'src>() -> impl Parser<'src, &'src str, Definition> {
+pub fn label_def<'src>() -> impl Parser<'src, &'src str, Definition<'src>> {
     text::ascii::ident()
         .h_padded()
         .then_ignore(just(":"))
         .h_padded()
-        .map(|label: &str| Definition(label.to_owned()))
+        .map(|label: &str| Definition(label))
 }
 
 #[cfg(test)]
@@ -27,11 +27,11 @@ mod tests {
     #[test]
     fn label_reference() {
         let result = label_ref().parse("label");
-        assert_eq!(result.unwrap(), Reference("label".to_owned()));
+        assert_eq!(result.unwrap(), Reference("label"));
         let result = label_ref().parse("  label // comment");
-        assert_eq!(result.unwrap(), Reference("label".to_owned()));
+        assert_eq!(result.unwrap(), Reference("label"));
         let result = label_ref().parse("__4lphanuM");
-        assert_eq!(result.unwrap(), Reference("__4lphanuM".to_owned()));
+        assert_eq!(result.unwrap(), Reference("__4lphanuM"));
         let result = label_ref().parse("42");
         assert_eq!(result.has_errors(), true);
         let result = label_ref().parse("label:");
@@ -41,11 +41,11 @@ mod tests {
     #[test]
     fn label_definition() {
         let result = label_def().parse("label:");
-        assert_eq!(result.unwrap(), Definition("label".to_owned()));
+        assert_eq!(result.unwrap(), Definition("label"));
         let result = label_def().parse("  label : // comment");
-        assert_eq!(result.unwrap(), Definition("label".to_owned()));
+        assert_eq!(result.unwrap(), Definition("label"));
         let result = label_def().parse("__4lphanuM:");
-        assert_eq!(result.unwrap(), Definition("__4lphanuM".to_owned()));
+        assert_eq!(result.unwrap(), Definition("__4lphanuM"));
         let result = label_def().parse("42:");
         assert_eq!(result.has_errors(), true);
         let result = label_def().parse("label");

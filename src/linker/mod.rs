@@ -1,28 +1,42 @@
 use crate::parser::immediate::Immediate;
+use crate::parser::label::{Definition, Reference};
 use crate::parser::real::instructions::Instruction as ParsInstr;
 use crate::processor::instructions::Instruction as ProcInstr;
+use std::collections::HashMap;
 
-pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
-    parsed
+pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Vec<ProcInstr> {
+    instrs
         .iter()
         .map(|i| match *i {
             ParsInstr::BType {
                 name,
                 rs1,
                 rs2,
-                offset: Immediate::Value(offset),
-            } => ProcInstr::BType {
-                name,
-                rs1,
-                rs2,
                 offset,
-            },
+            } => {
+                let offset = match offset {
+                    Immediate::Label(Reference(l)) => {
+                        *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4
+                    }
+                    Immediate::Value(v) => v,
+                };
+                ProcInstr::BType {
+                    name,
+                    rs1,
+                    rs2,
+                    offset,
+                }
+            }
             ParsInstr::IType { name, rd, rs, imm } => ProcInstr::IType { name, rd, rs, imm },
-            ParsInstr::JType {
-                name,
-                rd,
-                imm: Immediate::Value(imm),
-            } => ProcInstr::JType { name, rd, imm },
+            ParsInstr::JType { name, rd, imm } => {
+                let imm = match imm {
+                    Immediate::Label(Reference(l)) => {
+                        *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4
+                    }
+                    Immediate::Value(v) => v,
+                };
+                ProcInstr::JType { name, rd, imm }
+            }
             ParsInstr::RType { name, rd, rs1, rs2 } => ProcInstr::RType { name, rd, rs1, rs2 },
             ParsInstr::SType {
                 name,
@@ -36,12 +50,6 @@ pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
                 imm,
             },
             ParsInstr::UType { name, rd, imm } => ProcInstr::UType { name, rd, imm },
-            _ => ProcInstr::IType {
-                name: crate::names::IType::Addi,
-                rd: 0,
-                rs: 0,
-                imm: 0,
-            }, // TODO: resolve labels, remove NOP
         })
         .collect()
 }

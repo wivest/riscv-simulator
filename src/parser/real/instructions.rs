@@ -2,7 +2,7 @@ use crate::names::*;
 use crate::parser::immediate::Immediate;
 
 #[derive(Debug, PartialEq)]
-pub enum Instruction {
+pub enum Instruction<'a> {
     RType {
         name: RType,
         rd: usize,
@@ -19,7 +19,7 @@ pub enum Instruction {
         name: BType,
         rs1: usize,
         rs2: usize,
-        offset: Immediate,
+        offset: Immediate<'a>,
     },
     SType {
         name: SType,
@@ -35,6 +35,6 @@ pub enum Instruction {
     JType {
         name: JType,
         rd: usize,
-        imm: Immediate,
+        imm: Immediate<'a>,
     },
 }

@@ -9,7 +9,7 @@ pub mod instructions;
 fn rtype<'src>(
     name: RType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(
             register()
@@ -19,7 +19,7 @@ fn rtype<'src>(
         .map(move |[rd, rs1, rs2]| Instruction::RType { name, rd, rs1, rs2 })
 }
 
-fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
     let mul = rtype(RType::Mul, just("mul"));
@@ -32,7 +32,7 @@ fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
 fn itype<'src>(
     name: IType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(
             register()
@@ -44,7 +44,7 @@ fn itype<'src>(
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
 
-fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let addi = itype(IType::Addi, just("addi"));
     let lb = itype_load(IType::Lb, just("lb"));
     let lh = itype_load(IType::Lh, just("lh"));
@@ -56,7 +56,7 @@ fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
 fn btype<'src>(
     name: BType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(
             register()
@@ -73,7 +73,7 @@ fn btype<'src>(
         })
 }
 
-fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let beq = btype(BType::Beq, just("beq"));
     let bne = btype(BType::Bne, just("bne"));
 
@@ -83,7 +83,7 @@ fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
 fn stype<'src>(
     name: SType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(
             register()
@@ -101,7 +101,7 @@ fn stype<'src>(
         })
 }
 
-fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let sb = stype(SType::Sb, just("sb"));
     let sh = stype(SType::Sh, just("sh"));
     let sw = stype(SType::Sw, just("sw"));
@@ -112,7 +112,7 @@ fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
 fn itype_load<'src>(
     name: IType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(
             register()
@@ -128,13 +128,13 @@ fn itype_load<'src>(
 fn jtype<'src>(
     name: JType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(register().then_ignore(just(",")).then(offset(21)))
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
 }
 
-fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let jal = jtype(JType::Jal, just("jal"));
 
     choice((jal,))
@@ -143,20 +143,20 @@ fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
 fn utype<'src>(
     name: UType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction> {
+) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
         .ignore_then(register().then_ignore(just(",")).then(immediate(20)))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
-fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let lui = utype(UType::Lui, just("lui"));
     let auipc = utype(UType::Auipc, just("auipc"));
 
     choice((lui, auipc))
 }
 
-pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction> {
+pub fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();

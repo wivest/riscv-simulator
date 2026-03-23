@@ -4,7 +4,7 @@ use super::register::*;
 use crate::names::*;
 use chumsky::prelude::*;
 
-pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
+pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
     just("li")
         .ignore_then(register().then_ignore(just(",")).then(immediate(32)))
         .map(move |(rd, imm)| {
@@ -24,6 +24,6 @@ pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
         })
 }
 
-pub fn pseudo_instructions<'src>() -> impl Parser<'src, &'src str, Vec<Instruction>> {
+pub fn pseudo_instructions<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
     choice((li(),))
 }
