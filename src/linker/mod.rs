@@ -36,7 +36,12 @@ pub fn translate(parsed: Vec<ParsInstr>) -> Vec<ProcInstr> {
                 imm,
             },
             ParsInstr::UType { name, rd, imm } => ProcInstr::UType { name, rd, imm },
-            _ => todo!(), // TODO: resolve labels
+            _ => ProcInstr::IType {
+                name: crate::names::IType::Addi,
+                rd: 0,
+                rs: 0,
+                imm: 0,
+            }, // TODO: resolve labels, remove NOP
         })
         .collect()
 }

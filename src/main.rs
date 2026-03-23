@@ -23,7 +23,7 @@ fn main() {
     if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok(instrs) => {
+            Ok((instrs, _)) => {
                 let mut proc = Processor::new();
                 proc.store_instrs(linker::translate(instrs), 1024);
                 proc.execute(1024);

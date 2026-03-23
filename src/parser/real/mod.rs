@@ -1,5 +1,4 @@
 use super::immediate::*;
-use super::label::*;
 use super::register::*;
 use crate::names::*;
 use chumsky::prelude::*;
