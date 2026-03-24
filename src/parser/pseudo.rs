@@ -1,7 +1,6 @@
+use super::grammar::*;
 use super::immediate::*;
-use super::real::instructions::Instruction;
 use super::register::*;
-use crate::names::*;
 use chumsky::prelude::*;
 
 pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {

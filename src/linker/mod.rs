@@ -1,6 +1,6 @@
+use crate::parser::grammar::Instruction as ParsInstr;
 use crate::parser::immediate::Immediate;
 use crate::parser::label::{Definition, Reference};
-use crate::parser::real::instructions::Instruction as ParsInstr;
 use crate::processor::instructions::Instruction as ProcInstr;
 use std::collections::HashMap;
 

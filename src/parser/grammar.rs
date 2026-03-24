@@ -1,5 +1,5 @@
-use crate::names::*;
-use crate::parser::immediate::Immediate;
+use super::immediate::Immediate;
+pub use crate::names::*;
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction<'a> {
