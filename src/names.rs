@@ -25,6 +25,9 @@ pub enum RType {
     Mul,
     Div,
     Rem,
+    And,
+    Or,
+    Xor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

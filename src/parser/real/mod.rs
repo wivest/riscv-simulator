@@ -25,8 +25,11 @@ fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>>
     let mul = rtype(RType::Mul, just("mul"));
     let div = rtype(RType::Div, just("div"));
     let rem = rtype(RType::Rem, just("rem"));
+    let and = rtype(RType::And, just("and"));
+    let or = rtype(RType::Or, just("or"));
+    let xor = rtype(RType::Xor, just("xor"));
 
-    choice((add, sub, mul, div, rem))
+    choice((add, sub, mul, div, rem, and, or, xor))
 }
 
 fn itype<'src>(
