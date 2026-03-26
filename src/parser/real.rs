@@ -33,7 +33,7 @@ pub fn itype<'src>(
                 .separated_by(just(","))
                 .collect_exactly::<[_; 2]>()
                 .then_ignore(just(","))
-                .then(immediate(12)),
+                .then(immediate12()),
         )
         .map(move |([rd, rs], imm)| Instruction::IType { name, rd, rs, imm })
 }
@@ -46,7 +46,7 @@ pub fn itype_load<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(","))
-                .then(immediate(32))
+                .then(immediate12())
                 .then_ignore(just("("))
                 .then(register())
                 .then_ignore(just(")")),
@@ -84,7 +84,7 @@ pub fn stype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(","))
-                .then(immediate(32))
+                .then(immediate(32)) // TODO: must be changed
                 .then_ignore(just("("))
                 .then(register())
                 .then_ignore(just(")")),
@@ -102,7 +102,7 @@ pub fn utype<'src>(
     prefix: impl Parser<'src, &'src str, &'src str>,
 ) -> impl Parser<'src, &'src str, Instruction<'src>> {
     prefix
-        .ignore_then(register().then_ignore(just(",")).then(immediate(20)))
+        .ignore_then(register().then_ignore(just(",")).then(immediate20()))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 

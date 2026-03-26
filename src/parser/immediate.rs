@@ -3,9 +3,16 @@ use super::label::*;
 use chumsky::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Immediate<'a> {
+pub enum Offset<'a> {
     Value(i32),
     Label(Reference<'a>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Immediate<'a> {
+    Value(i32),
+    Upper(Reference<'a>),
+    Lower(Reference<'a>),
 }
 
 fn radix_immediate<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
@@ -28,9 +35,31 @@ pub fn immediate<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
         .h_padded()
 }
 
-pub fn offset<'src>(bits: u32) -> impl Parser<'src, &'src str, Immediate<'src>> {
-    let imm = immediate(bits).map(|imm| Immediate::Value(imm));
-    let label = label_ref().map(|label| Immediate::Label(label));
+pub fn immediate12<'src>() -> impl Parser<'src, &'src str, Immediate<'src>> {
+    let imm = immediate(12).map(|imm| Immediate::Value(imm));
+    let lower = just("%lo(")
+        .ignore_then(label_ref())
+        .then_ignore(just(")"))
+        .map(|label| Immediate::Lower(label))
+        .h_padded();
+
+    choice((imm, lower))
+}
+
+pub fn immediate20<'src>() -> impl Parser<'src, &'src str, Immediate<'src>> {
+    let imm = immediate(20).map(|imm| Immediate::Value(imm));
+    let lower = just("%hi(")
+        .ignore_then(label_ref())
+        .then_ignore(just(")"))
+        .map(|label| Immediate::Upper(label))
+        .h_padded();
+
+    choice((imm, lower))
+}
+
+pub fn offset<'src>(bits: u32) -> impl Parser<'src, &'src str, Offset<'src>> {
+    let imm = immediate(bits).map(|imm| Offset::Value(imm));
+    let label = label_ref().map(|label| Offset::Label(label));
     choice((imm, label))
 }
 

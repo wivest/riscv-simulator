@@ -1,5 +1,5 @@
 use crate::parser::grammar::Instruction as ParsInstr;
-use crate::parser::immediate::Immediate;
+use crate::parser::immediate::{Immediate, Offset};
 use crate::parser::label::{Definition, Reference};
 use crate::processor::instructions::Instruction as ProcInstr;
 use std::collections::HashMap;
@@ -16,10 +16,10 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
                 offset,
             } => {
                 let offset = match offset {
-                    Immediate::Label(Reference(l)) => {
+                    Offset::Label(Reference(l)) => {
                         (*defs.get(&Definition(l)).unwrap_or(&0) as i32 - i as i32) * 4
                     }
-                    Immediate::Value(v) => v,
+                    Offset::Value(v) => v,
                 };
                 ProcInstr::BType {
                     name,
@@ -28,13 +28,18 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
                     offset,
                 }
             }
-            ParsInstr::IType { name, rd, rs, imm } => ProcInstr::IType { name, rd, rs, imm },
+            ParsInstr::IType { name, rd, rs, imm } => ProcInstr::IType {
+                name,
+                rd,
+                rs,
+                imm: calc_imm(imm, &defs),
+            },
             ParsInstr::JType { name, rd, imm } => {
                 let imm = match imm {
-                    Immediate::Label(Reference(l)) => {
+                    Offset::Label(Reference(l)) => {
                         (*defs.get(&Definition(l)).unwrap_or(&0) as i32 - i as i32) * 4
                     }
-                    Immediate::Value(v) => v,
+                    Offset::Value(v) => v,
                 };
                 ProcInstr::JType { name, rd, imm }
             }
@@ -50,8 +55,28 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
                 rs2,
                 imm,
             },
-            ParsInstr::UType { name, rd, imm } => ProcInstr::UType { name, rd, imm },
+            ParsInstr::UType { name, rd, imm } => ProcInstr::UType {
+                name,
+                rd,
+                imm: calc_imm(imm, &defs),
+            },
             ParsInstr::System(sys) => ProcInstr::System(sys),
         })
         .collect()
+}
+
+fn calc_imm(imm: Immediate, defs: &HashMap<Definition, usize>) -> i32 {
+    match imm {
+        Immediate::Value(v) => v,
+        Immediate::Upper(Reference(l)) => {
+            let v = *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4;
+            println!("upper {v}");
+            v >> 12
+        }
+        Immediate::Lower(Reference(l)) => {
+            let v = *defs.get(&Definition(l)).unwrap_or(&0) as i32 * 4;
+            println!("lower {v}");
+            v << 20 >> 20
+        }
+    }
 }

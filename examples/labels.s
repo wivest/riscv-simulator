@@ -3,6 +3,8 @@ _start:
     addi a1, zero, 40
     jal ra, add_numbers
     sb a0, 0(zero)
+    la a2, add_numbers
+    sw a2, 4(zero)
     ebreak
 
 add_numbers:

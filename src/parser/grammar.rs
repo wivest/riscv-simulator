@@ -1,4 +1,4 @@
-use super::immediate::Immediate;
+use super::immediate::{Immediate, Offset};
 pub use crate::names::*;
 
 #[derive(Debug, PartialEq)]
@@ -13,13 +13,13 @@ pub enum Instruction<'a> {
         name: IType,
         rd: usize,
         rs: usize,
-        imm: i32,
+        imm: Immediate<'a>,
     },
     BType {
         name: BType,
         rs1: usize,
         rs2: usize,
-        offset: Immediate<'a>,
+        offset: Offset<'a>,
     },
     SType {
         name: SType,
@@ -30,12 +30,12 @@ pub enum Instruction<'a> {
     UType {
         name: UType,
         rd: usize,
-        imm: i32,
+        imm: Immediate<'a>,
     },
     JType {
         name: JType,
         rd: usize,
-        imm: Immediate<'a>,
+        imm: Offset<'a>,
     },
     System(System),
 }
