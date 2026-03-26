@@ -42,3 +42,8 @@ pub enum UType {
     Lui,
     Auipc,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum System {
+    Ebreak,
+}

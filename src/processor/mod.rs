@@ -42,7 +42,9 @@ impl Processor {
                 break;
             };
             println!("{instr:?}");
-            instr.execute(self);
+            if !instr.execute(self) {
+                break;
+            }
         }
     }
 }

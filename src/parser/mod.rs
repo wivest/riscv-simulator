@@ -101,9 +101,10 @@ fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> 
     let stype_ins = stype_instructions();
     let jtype_ins = jtype_instructions();
     let utype_ins = utype_instructions();
+    let system_ins = system();
 
     choice((
-        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins,
+        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins, system_ins,
     ))
 }
 

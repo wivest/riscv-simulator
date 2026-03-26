@@ -44,10 +44,11 @@ pub enum Instruction {
         rd: usize,
         imm: i32,
     },
+    System(System),
 }
 
 impl Instruction {
-    pub fn execute(&self, cpu: &mut Processor) {
+    pub fn execute(&self, cpu: &mut Processor) -> bool {
         match *self {
             Instruction::RType { name, rd, rs1, rs2 } => name.execute(cpu, rd, rs1, rs2),
             Instruction::IType { name, rd, rs, imm } => name.execute(cpu, rd, rs, imm),
@@ -65,6 +66,8 @@ impl Instruction {
             } => name.execute(cpu, rs1, rs2, imm),
             Instruction::JType { name, rd, imm } => name.execute(cpu, rd, imm),
             Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
+            Instruction::System(_) => return false,
         }
+        true
     }
 }

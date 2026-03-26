@@ -37,4 +37,5 @@ pub enum Instruction<'a> {
         rd: usize,
         imm: Immediate<'a>,
     },
+    System(System),
 }

@@ -51,6 +51,7 @@ pub fn translate(instrs: Vec<ParsInstr>, defs: HashMap<Definition, usize>) -> Ve
                 imm,
             },
             ParsInstr::UType { name, rd, imm } => ProcInstr::UType { name, rd, imm },
+            ParsInstr::System(sys) => ProcInstr::System(sys),
         })
         .collect()
 }

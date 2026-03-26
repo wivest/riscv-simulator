@@ -105,3 +105,9 @@ pub fn utype<'src>(
         .ignore_then(register().then_ignore(just(",")).then(immediate(20)))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
+
+pub fn system<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+    let ebreak = just("ebreak").map(|_| Instruction::System(System::Ebreak));
+
+    choice((ebreak,))
+}
