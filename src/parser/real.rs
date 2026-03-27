@@ -1,3 +1,4 @@
+use super::common::*;
 pub use super::grammar::*;
 use super::immediate::*;
 use super::register::*;
@@ -84,7 +85,7 @@ pub fn stype<'src>(
         .ignore_then(
             register()
                 .then_ignore(just(","))
-                .then(immediate(32)) // TODO: must be changed
+                .then(number(32)) // TODO: must be changed
                 .then_ignore(just("("))
                 .then(register())
                 .then_ignore(just(")")),

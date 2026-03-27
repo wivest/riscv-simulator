@@ -2,7 +2,7 @@ use super::common::*;
 use chumsky::prelude::*;
 
 pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
-    let index = just("x").ignore_then(number(10)).filter(|n| *n <= 31);
+    let index = just("x").ignore_then(digits(10)).filter(|n| *n <= 31);
 
     let zero = just("zero").map(|_| 0);
     let ra = just("ra").map(|_| 1);
@@ -12,21 +12,23 @@ pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let fp = just("fp").map(|_| 8);
 
     let temporary = just("t")
-        .ignore_then(number::<usize>(10))
+        .ignore_then(digits(10))
         .filter(|n| *n <= 6)
         .map(|n| if n <= 2 { n + 5 } else { n + 25 });
 
     let saved = just("s")
-        .ignore_then(number::<usize>(10))
+        .ignore_then(digits(10))
         .filter(|n| *n <= 11)
         .map(|n| if n <= 1 { n + 8 } else { n + 16 });
 
     let argument = just("a")
-        .ignore_then(number::<usize>(10))
+        .ignore_then(digits(10))
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
-    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument)).h_padded()
+    choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
+        .map(|n| n as usize)
+        .h_padded()
 }
 
 #[cfg(test)]

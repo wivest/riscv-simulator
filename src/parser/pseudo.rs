@@ -1,5 +1,6 @@
 use crate::parser::label::label_ref;
 
+use super::common::*;
 use super::grammar::*;
 use super::immediate::*;
 use super::register::*;
@@ -9,7 +10,7 @@ pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
     just("li")
         .ignore_then(register())
         .then_ignore(just(","))
-        .then(immediate(32))
+        .then(number(32))
         .map(move |(rd, imm)| {
             vec![
                 Instruction::UType {
@@ -37,13 +38,13 @@ pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
                 Instruction::UType {
                     name: UType::Lui,
                     rd,
-                    imm: Immediate::Upper(label), // TODO: label address to be resolved at link time
+                    imm: Immediate::Upper(label),
                 },
                 Instruction::IType {
                     name: IType::Addi,
                     rd,
                     rs: rd,
-                    imm: Immediate::Lower(label), // TODO: label address to be resolved at link time
+                    imm: Immediate::Lower(label),
                 },
             ]
         })

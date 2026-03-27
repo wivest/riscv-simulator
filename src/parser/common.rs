@@ -1,23 +1,27 @@
 use chumsky::prelude::*;
 
-pub trait FromStrRadix: Sized {
-    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError>;
+pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i32> {
+    text::int(radix).map(move |s: &'src str| i32::from_str_radix(s, radix).unwrap())
 }
 
-impl FromStrRadix for usize {
-    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError> {
-        usize::from_str_radix(s, radix)
-    }
+fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
+    digits(radix)
+        .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
+        .h_padded()
 }
 
-impl FromStrRadix for i32 {
-    fn from_str_radix(s: &str, radix: u32) -> Result<Self, std::num::ParseIntError> {
-        i32::from_str_radix(s, radix)
-    }
-}
+pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
+    let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
+    let bin = just("0b").ignore_then(number_radix(2, bits));
+    let oct = just("0o").ignore_then(number_radix(8, bits));
+    let hex = just("0x").ignore_then(number_radix(16, bits));
+    let dec = number_radix(10, bits);
+    let imm = choice((bin, oct, hex, dec));
 
-pub fn number<'src, T: FromStrRadix>(radix: u32) -> impl Parser<'src, &'src str, T> {
-    text::int(radix).map(move |s: &'src str| T::from_str_radix(s, radix).unwrap())
+    sign.then_ignore(text::whitespace())
+        .then(imm)
+        .map(|(s, n)| s * n)
+        .h_padded()
 }
 
 pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
