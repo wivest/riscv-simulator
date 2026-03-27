@@ -1,3 +1,5 @@
+.org 1024
+
 _start:
     addi a0, zero, 2
     addi a1, zero, 40

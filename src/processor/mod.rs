@@ -11,9 +11,9 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn new() -> Self {
+    pub fn new(reset: usize) -> Self {
         Processor {
-            pc: 0,
+            pc: reset,
             registers: [0; 32],
             memory: Memory::new(),
         }
@@ -29,14 +29,13 @@ impl Processor {
         };
     }
 
-    pub fn store_instrs(&mut self, instrs: Vec<Instruction>, offset: usize) {
-        for (i, instr) in instrs.into_iter().enumerate() {
-            self.memory.store_instr(offset + i * 4, instr);
-        }
+    pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction)>) {
+        instrs.into_iter().for_each(|(addr, instr)| {
+            self.memory.store_instr(addr, instr);
+        });
     }
 
-    pub fn execute(&mut self, offset: usize) {
-        self.pc = offset;
+    pub fn execute(&mut self) {
         loop {
             let Some(instr) = self.memory.load_instr(self.pc) else {
                 break;
