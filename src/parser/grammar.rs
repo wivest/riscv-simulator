@@ -1,4 +1,4 @@
-use super::immediate::{Immediate, Offset};
+use super::token::{Immediate, Offset};
 pub use crate::names::*;
 
 #[derive(Debug, PartialEq)]

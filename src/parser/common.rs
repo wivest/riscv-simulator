@@ -1,4 +1,4 @@
-use chumsky::prelude::*;
+pub use chumsky::prelude::*;
 
 pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i32> {
     text::int(radix).map(move |s: &'src str| i32::from_str_radix(s, radix).unwrap())

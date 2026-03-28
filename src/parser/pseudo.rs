@@ -1,10 +1,6 @@
-use crate::parser::label::label_ref;
-
-use super::common::*;
 use super::grammar::*;
-use super::immediate::*;
-use super::register::*;
-use chumsky::prelude::*;
+use super::token::{Immediate, label_ref, register};
+use crate::parser::common::*;
 
 pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
     just("li")

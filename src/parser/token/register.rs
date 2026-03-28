@@ -1,5 +1,4 @@
-use super::common::*;
-use chumsky::prelude::*;
+use crate::parser::common::*;
 
 pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
     let index = just("x").ignore_then(digits(10)).filter(|n| *n <= 31);

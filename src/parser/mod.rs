@@ -1,22 +1,27 @@
 use crate::directive::Directive;
 use chumsky::prelude::*;
-use label::Definition;
 use real::*;
 use std::collections::HashMap;
 
 mod common;
 mod directive;
 pub mod grammar;
-pub mod immediate;
-pub mod label;
+pub mod token {
+    pub use immediate::*;
+    pub use label::*;
+    pub use register::*;
+
+    mod immediate;
+    mod label;
+    mod register;
+}
 mod pseudo;
 pub mod real;
-mod register;
 
 pub enum Line<'a> {
     Instruction(Instruction<'a>),
     Pseudo(Vec<Instruction<'a>>),
-    Label(Definition<'a>),
+    Label(token::Definition<'a>),
     Directive(Directive),
 }
 
@@ -25,12 +30,12 @@ pub fn program<'src>() -> impl Parser<
     &'src str,
     (
         Vec<(usize, Instruction<'src>)>,
-        HashMap<Definition<'src>, usize>,
+        HashMap<token::Definition<'src>, usize>,
     ),
 > {
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
-    let labels = label::label_def().map(|l| Line::Label(l));
+    let labels = token::label_def().map(|l| Line::Label(l));
     let dir = directive::org().map(|d| Line::Directive(d));
     let line = choice((real_ins, pseudo_ins, labels, dir));
 

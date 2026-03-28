@@ -1,8 +1,6 @@
-use super::common::*;
 pub use super::grammar::*;
-use super::immediate::*;
-use super::register::*;
-use chumsky::prelude::*;
+use super::token::{immediate12, immediate20, offset, register};
+use crate::parser::common::*;
 
 pub fn btype<'src>(
     name: BType,

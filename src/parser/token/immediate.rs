@@ -1,6 +1,5 @@
-use super::common::*;
-use super::label::*;
-use chumsky::prelude::*;
+use super::label::{Reference, label_ref};
+use crate::parser::common::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Offset<'a> {
