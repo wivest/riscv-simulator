@@ -67,6 +67,7 @@ pub fn program<'src>() -> impl Parser<
                     ()
                 }
                 Line::Directive(Directive::Org(at)) => pc = at,
+                Line::Directive(Directive::Asciz(s)) => (),
             }
         }
 
