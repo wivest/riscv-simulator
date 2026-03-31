@@ -29,6 +29,7 @@ pub fn program<'src>() -> impl Parser<
     'src,
     &'src str,
     (
+        Vec<(usize, String)>,
         Vec<(usize, Instruction<'src>)>,
         HashMap<token::Definition<'src>, usize>,
     ),
@@ -36,11 +37,12 @@ pub fn program<'src>() -> impl Parser<
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
     let labels = token::label_def().map(|l| Line::Label(l));
-    let dir = directive::org().map(|d| Line::Directive(d));
-    let line = choice((real_ins, pseudo_ins, labels, dir));
+    let dirs = directive::dirs().map(|d| Line::Directive(d));
+    let line = choice((real_ins, pseudo_ins, labels, dirs));
 
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
         let mut pc = 0usize;
+        let mut strings = Vec::new();
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
@@ -67,11 +69,15 @@ pub fn program<'src>() -> impl Parser<
                     ()
                 }
                 Line::Directive(Directive::Org(at)) => pc = at,
-                Line::Directive(Directive::Asciz(s)) => (),
+                Line::Directive(Directive::Asciz(s)) => {
+                    let slen = s.len() + 1;
+                    strings.push((pc, s));
+                    pc += slen;
+                }
             }
         }
 
-        (instrs, defs)
+        (strings, instrs, defs)
     })
 }
 
