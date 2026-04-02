@@ -1,9 +1,9 @@
-use super::instructions::Instruction;
+use crate::instruction::Instruction;
 use std::collections::HashMap;
 
 #[derive(Debug)]
 enum Word {
-    Instruction(Instruction),
+    Instruction(Instruction<i32, i32>),
     Value(u32),
 }
 
@@ -39,7 +39,7 @@ impl Memory {
             .insert(addr / 4, Word::Value(u32::from_ne_bytes(bytes)));
     }
 
-    pub fn load_instr(&self, pc: usize) -> Option<Instruction> {
+    pub fn load_instr(&self, pc: usize) -> Option<Instruction<i32, i32>> {
         let word = self.words.get(&(pc / 4))?;
         match word {
             Word::Instruction(i) => Some(*i),
@@ -47,7 +47,7 @@ impl Memory {
         }
     }
 
-    pub fn store_instr(&mut self, addr: usize, instr: Instruction) {
+    pub fn store_instr(&mut self, addr: usize, instr: Instruction<i32, i32>) {
         self.words.insert(addr / 4, Word::Instruction(instr));
     }
 }

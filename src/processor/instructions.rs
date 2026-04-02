@@ -1,4 +1,5 @@
 use super::Processor;
+use crate::instruction::Instruction;
 use crate::names::*;
 
 mod btype;
@@ -8,46 +9,7 @@ mod rtype;
 mod stype;
 mod utype;
 
-#[derive(Debug, Clone, Copy)]
-pub enum Instruction {
-    RType {
-        name: RType,
-        rd: usize,
-        rs1: usize,
-        rs2: usize,
-    },
-    IType {
-        name: IType,
-        rd: usize,
-        rs: usize,
-        imm: i32,
-    },
-    BType {
-        name: BType,
-        rs1: usize,
-        rs2: usize,
-        offset: i32,
-    },
-    SType {
-        name: SType,
-        rs1: usize,
-        rs2: usize,
-        imm: i32,
-    },
-    UType {
-        name: UType,
-        rd: usize,
-        imm: i32,
-    },
-    JType {
-        name: JType,
-        rd: usize,
-        imm: i32,
-    },
-    System(System),
-}
-
-impl Instruction {
+impl Instruction<i32, i32> {
     pub fn execute(&self, cpu: &mut Processor) -> bool {
         match *self {
             Instruction::RType { name, rd, rs1, rs2 } => name.execute(cpu, rd, rs1, rs2),

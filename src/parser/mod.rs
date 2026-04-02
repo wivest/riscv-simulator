@@ -5,7 +5,6 @@ use std::collections::HashMap;
 
 mod common;
 mod directive;
-pub mod grammar;
 pub mod token {
     pub use immediate::*;
     pub use label::*;
@@ -19,8 +18,8 @@ mod pseudo;
 pub mod real;
 
 pub enum Line<'a> {
-    Instruction(Instruction<'a>),
-    Pseudo(Vec<Instruction<'a>>),
+    Instruction(Instruction<token::Immediate<'a>, token::Offset<'a>>),
+    Pseudo(Vec<Instruction<token::Immediate<'a>, token::Offset<'a>>>),
     Label(token::Definition<'a>),
     Directive(Directive),
 }
@@ -30,7 +29,10 @@ pub fn program<'src>() -> impl Parser<
     &'src str,
     (
         Vec<(usize, String)>,
-        Vec<(usize, Instruction<'src>)>,
+        Vec<(
+            usize,
+            Instruction<token::Immediate<'src>, token::Offset<'src>>,
+        )>,
         HashMap<token::Definition<'src>, usize>,
     ),
 > {
@@ -81,14 +83,16 @@ pub fn program<'src>() -> impl Parser<
     })
 }
 
-fn btype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn btype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let beq = btype(BType::Beq, just("beq"));
     let bne = btype(BType::Bne, just("bne"));
 
     choice((beq, bne))
 }
 
-fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn itype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let addi = itype(IType::Addi, just("addi"));
     let jalr = itype(IType::Jalr, just("jalr"));
     let lb = itype_load(IType::Lb, just("lb"));
@@ -98,13 +102,15 @@ fn itype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>>
     choice((addi, jalr, lb, lh, lw))
 }
 
-fn jtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn jtype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let jal = jtype(JType::Jal, just("jal"));
 
     choice((jal,))
 }
 
-fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn rtype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
     let mul = rtype(RType::Mul, just("mul"));
@@ -117,7 +123,8 @@ fn rtype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>>
     choice((add, sub, mul, div, rem, and, or, xor))
 }
 
-fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn stype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let sb = stype(SType::Sb, just("sb"));
     let sh = stype(SType::Sh, just("sh"));
     let sw = stype(SType::Sw, just("sw"));
@@ -125,14 +132,16 @@ fn stype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>>
     choice((sb, sh, sw))
 }
 
-fn utype_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn utype_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let lui = utype(UType::Lui, just("lui"));
     let auipc = utype(UType::Auipc, just("auipc"));
 
     choice((lui, auipc))
 }
 
-fn real_instructions<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+fn real_instructions<'src>()
+-> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();

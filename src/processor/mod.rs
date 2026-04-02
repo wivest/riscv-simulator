@@ -1,4 +1,4 @@
-use instructions::Instruction;
+use crate::instruction::Instruction;
 use memory::Memory;
 
 pub mod instructions;
@@ -38,7 +38,7 @@ impl Processor {
         }
     }
 
-    pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction)>) {
+    pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction<i32, i32>)>) {
         instrs.into_iter().for_each(|(addr, instr)| {
             self.memory.store_instr(addr, instr);
         });

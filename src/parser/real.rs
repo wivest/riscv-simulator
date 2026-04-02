@@ -1,11 +1,11 @@
-pub use super::grammar::*;
-use super::token::{immediate12, immediate20, offset, register};
+use super::token::{Immediate, Offset, immediate12, immediate20, offset, register};
+pub use crate::instruction::*;
 use crate::parser::common::*;
 
 pub fn btype<'src>(
     name: BType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(
             register()
@@ -25,7 +25,7 @@ pub fn btype<'src>(
 pub fn itype<'src>(
     name: IType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(
             register()
@@ -40,7 +40,7 @@ pub fn itype<'src>(
 pub fn itype_load<'src>(
     name: IType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(
             register()
@@ -56,7 +56,7 @@ pub fn itype_load<'src>(
 pub fn jtype<'src>(
     name: JType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(register().then_ignore(just(",")).then(offset(21)))
         .map(move |(rd, imm)| Instruction::JType { name, rd, imm })
@@ -65,7 +65,7 @@ pub fn jtype<'src>(
 pub fn rtype<'src>(
     name: RType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(
             register()
@@ -78,7 +78,7 @@ pub fn rtype<'src>(
 pub fn stype<'src>(
     name: SType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(
             register()
@@ -99,13 +99,13 @@ pub fn stype<'src>(
 pub fn utype<'src>(
     name: UType,
     prefix: impl Parser<'src, &'src str, &'src str>,
-) -> impl Parser<'src, &'src str, Instruction<'src>> {
+) -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     prefix
         .ignore_then(register().then_ignore(just(",")).then(immediate20()))
         .map(move |(rd, imm)| Instruction::UType { name, rd, imm })
 }
 
-pub fn system<'src>() -> impl Parser<'src, &'src str, Instruction<'src>> {
+pub fn system<'src>() -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let ebreak = just("ebreak").map(|_| Instruction::System(System::Ebreak));
 
     choice((ebreak,))

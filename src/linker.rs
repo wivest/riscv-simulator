@@ -1,19 +1,18 @@
-use crate::parser::grammar::Instruction as ParsInstr;
+use crate::instruction::Instruction;
 use crate::parser::token::{Definition, Immediate, Offset, Reference};
-use crate::processor::instructions::Instruction as ProcInstr;
 use std::collections::HashMap;
 
 pub fn translate(
-    instrs: Vec<(usize, ParsInstr)>,
+    instrs: Vec<(usize, Instruction<Immediate, Offset>)>,
     defs: HashMap<Definition, usize>,
-) -> Vec<(usize, ProcInstr)> {
+) -> Vec<(usize, Instruction<i32, i32>)> {
     instrs
         .into_iter()
         .map(|(addr, instr)| {
             (
                 addr,
                 match instr {
-                    ParsInstr::BType {
+                    Instruction::BType {
                         name,
                         rs1,
                         rs2,
@@ -25,48 +24,48 @@ pub fn translate(
                             }
                             Offset::Value(v) => v,
                         };
-                        ProcInstr::BType {
+                        Instruction::BType {
                             name,
                             rs1,
                             rs2,
                             offset,
                         }
                     }
-                    ParsInstr::IType { name, rd, rs, imm } => ProcInstr::IType {
+                    Instruction::IType { name, rd, rs, imm } => Instruction::IType {
                         name,
                         rd,
                         rs,
                         imm: calc_imm(imm, &defs),
                     },
-                    ParsInstr::JType { name, rd, imm } => {
+                    Instruction::JType { name, rd, imm } => {
                         let imm = match imm {
                             Offset::Label(Reference(l)) => {
                                 *defs.get(&Definition(l)).unwrap_or(&0) as i32 - addr as i32
                             }
                             Offset::Value(v) => v,
                         };
-                        ProcInstr::JType { name, rd, imm }
+                        Instruction::JType { name, rd, imm }
                     }
-                    ParsInstr::RType { name, rd, rs1, rs2 } => {
-                        ProcInstr::RType { name, rd, rs1, rs2 }
+                    Instruction::RType { name, rd, rs1, rs2 } => {
+                        Instruction::RType { name, rd, rs1, rs2 }
                     }
-                    ParsInstr::SType {
+                    Instruction::SType {
                         name,
                         rs1,
                         rs2,
                         imm,
-                    } => ProcInstr::SType {
+                    } => Instruction::SType {
                         name,
                         rs1,
                         rs2,
                         imm,
                     },
-                    ParsInstr::UType { name, rd, imm } => ProcInstr::UType {
+                    Instruction::UType { name, rd, imm } => Instruction::UType {
                         name,
                         rd,
                         imm: calc_imm(imm, &defs),
                     },
-                    ParsInstr::System(sys) => ProcInstr::System(sys),
+                    Instruction::System(sys) => Instruction::System(sys),
                 },
             )
         })

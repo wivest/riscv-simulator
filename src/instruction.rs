@@ -1,8 +1,7 @@
-use super::token::{Immediate, Offset};
 pub use crate::names::*;
 
-#[derive(Debug, PartialEq)]
-pub enum Instruction<'a> {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Instruction<I, O> {
     RType {
         name: RType,
         rd: usize,
@@ -13,13 +12,13 @@ pub enum Instruction<'a> {
         name: IType,
         rd: usize,
         rs: usize,
-        imm: Immediate<'a>,
+        imm: I,
     },
     BType {
         name: BType,
         rs1: usize,
         rs2: usize,
-        offset: Offset<'a>,
+        offset: O,
     },
     SType {
         name: SType,
@@ -30,12 +29,12 @@ pub enum Instruction<'a> {
     UType {
         name: UType,
         rd: usize,
-        imm: Immediate<'a>,
+        imm: I,
     },
     JType {
         name: JType,
         rd: usize,
-        imm: Offset<'a>,
+        imm: O,
     },
     System(System),
 }

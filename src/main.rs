@@ -4,6 +4,7 @@ use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
 mod directive;
+mod instruction;
 mod linker;
 mod names;
 mod parser;

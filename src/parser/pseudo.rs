@@ -1,8 +1,8 @@
-use super::grammar::*;
-use super::token::{Immediate, label_ref, register};
+use super::token::{Immediate, Offset, label_ref, register};
+use crate::instruction::*;
 use crate::parser::common::*;
 
-pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
+pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("li")
         .ignore_then(register())
         .then_ignore(just(","))
@@ -24,7 +24,7 @@ pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
         })
 }
 
-pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
+pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("la")
         .ignore_then(register())
         .then_ignore(just(","))
@@ -46,6 +46,7 @@ pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
         })
 }
 
-pub fn pseudo_instructions<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<'src>>> {
+pub fn pseudo_instructions<'src>()
+-> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     choice((li(), la()))
 }
