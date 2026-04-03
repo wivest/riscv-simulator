@@ -23,8 +23,26 @@ fn byte<'src>() -> impl Parser<'src, &'src str, Directive> {
         .map(|n| Directive::Byte(n as u8))
 }
 
+fn byte2<'src>() -> impl Parser<'src, &'src str, Directive> {
+    just(".byte")
+        .ignore_then(number(16))
+        .map(|n| Directive::Byte2(n as u16))
+}
+
+fn byte4<'src>() -> impl Parser<'src, &'src str, Directive> {
+    just(".byte")
+        .ignore_then(number(32))
+        .map(|n| Directive::Byte4(n as u32))
+}
+
+fn byte8<'src>() -> impl Parser<'src, &'src str, Directive> {
+    just(".byte")
+        .ignore_then(number(64)) // FIXME: i32 is not capable of storing i64
+        .map(|n| Directive::Byte8(n as u64))
+}
+
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
-    choice((org(), asciz(), byte()))
+    choice((org(), asciz(), byte(), byte2(), byte4(), byte8()))
 }
 
 #[cfg(test)]

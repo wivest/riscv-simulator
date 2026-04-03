@@ -44,6 +44,33 @@ impl Processor {
         }
     }
 
+    pub fn store_bytes2(&mut self, bytes: Vec<(usize, u16)>) {
+        for (at, byte) in bytes {
+            // TODO: endianness
+            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
+                self.memory.set(at + i, b);
+            }
+        }
+    }
+
+    pub fn store_bytes4(&mut self, bytes: Vec<(usize, u32)>) {
+        for (at, byte) in bytes {
+            // TODO: endianness
+            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
+                self.memory.set(at + i, b);
+            }
+        }
+    }
+
+    pub fn store_bytes8(&mut self, bytes: Vec<(usize, u64)>) {
+        for (at, byte) in bytes {
+            // TODO: endianness
+            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
+                self.memory.set(at + i, b);
+            }
+        }
+    }
+
     pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction<i32, i32>)>) {
         instrs.into_iter().for_each(|(addr, instr)| {
             self.memory.store_instr(addr, instr);

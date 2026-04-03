@@ -30,6 +30,9 @@ pub fn program<'src>() -> impl Parser<
     (
         Vec<(usize, String)>,
         Vec<(usize, u8)>,
+        Vec<(usize, u16)>,
+        Vec<(usize, u32)>,
+        Vec<(usize, u64)>,
         Vec<(
             usize,
             Instruction<token::Immediate<'src>, token::Offset<'src>>,
@@ -47,6 +50,9 @@ pub fn program<'src>() -> impl Parser<
         let mut pc = 0usize;
         let mut strings = Vec::new();
         let mut bytes = Vec::new();
+        let mut bytes2 = Vec::new();
+        let mut bytes4 = Vec::new();
+        let mut bytes8 = Vec::new();
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
@@ -82,10 +88,22 @@ pub fn program<'src>() -> impl Parser<
                     bytes.push((pc, b));
                     pc += 1;
                 }
+                Line::Directive(Directive::Byte2(b)) => {
+                    bytes2.push((pc, b));
+                    pc += 2;
+                }
+                Line::Directive(Directive::Byte4(b)) => {
+                    bytes4.push((pc, b));
+                    pc += 4;
+                }
+                Line::Directive(Directive::Byte8(b)) => {
+                    bytes8.push((pc, b));
+                    pc += 8;
+                }
             }
         }
 
-        (strings, bytes, instrs, defs)
+        (strings, bytes, bytes2, bytes4, bytes8, instrs, defs)
     })
 }
 
