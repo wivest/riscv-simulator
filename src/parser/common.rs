@@ -4,6 +4,14 @@ pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i32> {
     text::int(radix).map(move |s: &'src str| i32::from_str_radix(s, radix).unwrap())
 }
 
+fn char<'src>() -> impl Parser<'src, &'src str, i32> {
+    just('\'')
+        .ignore_then(none_of('\''))
+        .then_ignore(just('\''))
+        .filter(|c| *c <= u8::MAX as char)
+        .map(|c| c as i32)
+}
+
 fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
     digits(radix)
         .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
@@ -11,17 +19,17 @@ fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32
 }
 
 pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
-    let sign = just("-").map(|_| -1).or(empty().map(|_| 1));
+    let sign = just('-').to(-1).or(empty().to(1));
+    let dec = sign
+        .then_ignore(text::inline_whitespace())
+        .then(number_radix(10, bits))
+        .map(|(s, n)| s * n);
+
     let bin = just("0b").ignore_then(number_radix(2, bits));
     let oct = just("0o").ignore_then(number_radix(8, bits));
     let hex = just("0x").ignore_then(number_radix(16, bits));
-    let dec = number_radix(10, bits);
-    let imm = choice((bin, oct, hex, dec));
 
-    sign.then_ignore(text::whitespace())
-        .then(imm)
-        .map(|(s, n)| s * n)
-        .h_padded()
+    choice((bin, oct, hex, dec, char())).h_padded()
 }
 
 pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
@@ -49,6 +57,45 @@ fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_number() {
+        let result = number(32).parse("42");
+        assert_eq!(result.unwrap(), 42);
+        let result = number(32).parse("-42");
+        assert_eq!(result.unwrap(), -42);
+        let result = number(32).parse("- 42");
+        assert_eq!(result.unwrap(), -42);
+        let result = number(32).parse("-\n42");
+        assert_eq!(result.has_errors(), true);
+
+        let result = number(12).parse("4095");
+        assert_eq!(result.unwrap(), 4095);
+        let result = number(12).parse("4096");
+        assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_number_radix() {
+        let result = number(32).parse("0b10");
+        assert_eq!(result.unwrap(), 0b10);
+        let result = number(32).parse("0o42");
+        assert_eq!(result.unwrap(), 0o42);
+        let result = number(32).parse("0x42");
+        assert_eq!(result.unwrap(), 0x42);
+        let result = number(32).parse("-0x42");
+        assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_char() {
+        let result = number(32).parse("'a'");
+        assert_eq!(result.unwrap(), 'a' as i32);
+        let result = char().parse("'a'");
+        assert_eq!(result.unwrap(), 'a' as i32);
+        let result = char().parse("'🚀'");
+        assert_eq!(result.has_errors(), true);
+    }
 
     #[test]
     fn test_comment() {
