@@ -38,6 +38,12 @@ impl Processor {
         }
     }
 
+    pub fn store_bytes(&mut self, bytes: Vec<(usize, u8)>) {
+        for (at, byte) in bytes {
+            self.memory.set(at, byte);
+        }
+    }
+
     pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction<i32, i32>)>) {
         instrs.into_iter().for_each(|(addr, instr)| {
             self.memory.store_instr(addr, instr);

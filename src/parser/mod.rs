@@ -29,6 +29,7 @@ pub fn program<'src>() -> impl Parser<
     &'src str,
     (
         Vec<(usize, String)>,
+        Vec<(usize, u8)>,
         Vec<(
             usize,
             Instruction<token::Immediate<'src>, token::Offset<'src>>,
@@ -45,6 +46,7 @@ pub fn program<'src>() -> impl Parser<
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
         let mut pc = 0usize;
         let mut strings = Vec::new();
+        let mut bytes = Vec::new();
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
@@ -76,10 +78,14 @@ pub fn program<'src>() -> impl Parser<
                     strings.push((pc, s));
                     pc += slen;
                 }
+                Line::Directive(Directive::Byte(b)) => {
+                    bytes.push((pc, b));
+                    pc += 1;
+                }
             }
         }
 
-        (strings, instrs, defs)
+        (strings, bytes, instrs, defs)
     })
 }
 

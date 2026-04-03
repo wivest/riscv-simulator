@@ -17,8 +17,14 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
         .map(|s| Directive::Asciz(s))
 }
 
+fn byte<'src>() -> impl Parser<'src, &'src str, Directive> {
+    just(".byte")
+        .ignore_then(number(8))
+        .map(|n| Directive::Byte(n as u8))
+}
+
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
-    choice((org(), asciz()))
+    choice((org(), asciz(), byte()))
 }
 
 #[cfg(test)]
