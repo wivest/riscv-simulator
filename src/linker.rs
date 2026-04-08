@@ -58,7 +58,7 @@ pub fn translate(
                         name,
                         rs1,
                         rs2,
-                        imm,
+                        imm: calc_imm(imm, &defs),
                     },
                     Instruction::UType { name, rd, imm } => Instruction::UType {
                         name,

@@ -27,7 +27,7 @@ pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
 
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
         .map(|n| n as usize)
-        .h_padded()
+        .inline()
 }
 
 #[cfg(test)]

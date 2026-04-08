@@ -24,7 +24,7 @@ pub enum Instruction<I, O> {
         name: SType,
         rs1: usize,
         rs2: usize,
-        imm: i32,
+        imm: I,
     },
     UType {
         name: UType,

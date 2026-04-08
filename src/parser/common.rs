@@ -15,7 +15,7 @@ fn char<'src>() -> impl Parser<'src, &'src str, i32> {
 fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
     digits(radix)
         .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
-        .h_padded()
+        .inline()
 }
 
 pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
@@ -29,21 +29,30 @@ pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     let oct = just("0o").ignore_then(number_radix(8, bits));
     let hex = just("0x").ignore_then(number_radix(16, bits));
 
-    choice((bin, oct, hex, dec, char())).h_padded()
+    choice((bin, oct, hex, dec, char())).inline()
 }
 
-pub trait HPadded<'src, O>: Parser<'src, &'src str, O> + Sized {
-    fn h_padded(self) -> impl Parser<'src, &'src str, O> {
-        let h_whitespace = text::newline()
-            .not()
-            .ignore_then(text::whitespace().exactly(1))
-            .repeated()
-            .ignored();
-        self.padded_by(h_whitespace.then(comment().or_not()))
+pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
+    fn inline(self) -> impl Parser<'src, &'src str, O> {
+        self.padded_by(text::inline_whitespace().then(comment().or_not()))
+    }
+
+    fn then_arg<OA, A: Parser<'src, &'src str, OA>>(
+        self,
+        arg: A,
+    ) -> impl Parser<'src, &'src str, (O, OA)> {
+        self.then_ignore(just(',')).then(arg)
+    }
+
+    fn index<OA, A: Parser<'src, &'src str, OA>>(
+        self,
+        arg: A,
+    ) -> impl Parser<'src, &'src str, (O, OA)> {
+        self.then_ignore(just('(')).then(arg).then_ignore(just(')'))
     }
 }
 
-impl<'src, O, P> HPadded<'src, O> for P where P: Parser<'src, &'src str, O> {}
+impl<'src, O, P> Extended<'src, O> for P where P: Parser<'src, &'src str, O> {}
 
 fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
     let content = text::newline()
@@ -109,9 +118,9 @@ mod tests {
 
     #[test]
     fn test_h_padded() {
-        let result = just("just").h_padded().parse(" \njust\n ");
+        let result = just("just").inline().parse(" \njust\n ");
         assert_eq!(result.has_errors(), true);
-        let result = just("just").h_padded().parse("  just # comment");
+        let result = just("just").inline().parse("  just # comment");
         assert_eq!(result.has_output(), true);
         assert_eq!(result.unwrap(), "just");
     }

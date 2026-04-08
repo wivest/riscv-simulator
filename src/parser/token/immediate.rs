@@ -20,7 +20,7 @@ pub fn immediate12<'src>() -> impl Parser<'src, &'src str, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label))
-        .h_padded();
+        .inline();
 
     choice((imm, lower))
 }
@@ -31,7 +31,7 @@ pub fn immediate20<'src>() -> impl Parser<'src, &'src str, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Upper(label))
-        .h_padded();
+        .inline();
 
     choice((imm, lower))
 }

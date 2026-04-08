@@ -7,15 +7,15 @@ pub struct Definition<'a>(pub &'a str);
 
 pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Reference<'src>> {
     text::ascii::ident()
-        .h_padded()
+        .inline()
         .map(|label: &str| Reference(label))
 }
 
 pub fn label_def<'src>() -> impl Parser<'src, &'src str, Definition<'src>> {
     text::ascii::ident()
-        .h_padded()
+        .inline()
         .then_ignore(just(":"))
-        .h_padded()
+        .inline()
         .map(|label: &str| Definition(label))
 }
 
