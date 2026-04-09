@@ -4,7 +4,7 @@ use crate::parser::common::*;
 fn org<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".org")
         .ignore_then(number(32))
-        .map(|at| Directive::Org(at as usize))
+        .map(|at: usize| Directive::Org(at))
 }
 
 fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
@@ -20,25 +20,25 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
 fn byte<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".byte")
         .ignore_then(number(8))
-        .map(|n| Directive::Byte(n as u8))
+        .map(|n: u8| Directive::Byte(n))
 }
 
 fn byte2<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".byte")
         .ignore_then(number(16))
-        .map(|n| Directive::Byte2(n as u16))
+        .map(|n: u16| Directive::Byte2(n))
 }
 
 fn byte4<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".byte")
         .ignore_then(number(32))
-        .map(|n| Directive::Byte4(n as u32))
+        .map(|n: u32| Directive::Byte4(n))
 }
 
 fn byte8<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".byte")
         .ignore_then(number(64)) // FIXME: i32 is not capable of storing i64
-        .map(|n| Directive::Byte8(n as u64))
+        .map(|n: u64| Directive::Byte8(n))
 }
 
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {

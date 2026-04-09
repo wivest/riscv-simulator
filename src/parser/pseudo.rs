@@ -6,7 +6,7 @@ pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src
     just("li")
         .ignore_then(register())
         .then_ignore(just(","))
-        .then(number(32))
+        .then(number::<i32>(32))
         .map(move |(rd, imm)| {
             vec![
                 Instruction::UType {

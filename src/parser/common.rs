@@ -1,24 +1,27 @@
 pub use chumsky::prelude::*;
 
-pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i32> {
-    text::int(radix).map(move |s: &'src str| i32::from_str_radix(s, radix).unwrap())
+pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i64> {
+    text::int(radix).map(move |s: &'src str| i64::from_str_radix(s, radix).unwrap())
 }
 
-fn char<'src>() -> impl Parser<'src, &'src str, i32> {
+fn char<'src>() -> impl Parser<'src, &'src str, i64> {
     just('\'')
         .ignore_then(none_of('\''))
         .then_ignore(just('\''))
         .filter(|c| *c <= u8::MAX as char)
-        .map(|c| c as i32)
+        .map(|c| c as i64)
 }
 
-fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i32> {
+fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i64> {
     digits(radix)
-        .filter(move |n| 0u32.leading_zeros() - n.leading_zeros() <= bits)
+        .filter(move |n| 0i64.leading_zeros() - n.leading_zeros() <= bits)
         .inline()
 }
 
-pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
+pub fn number<'src, O>(bits: u32) -> impl Parser<'src, &'src str, O>
+where
+    O: TryFrom<i64> + Default,
+{
     let sign = just('-').to(-1).or(empty().to(1));
     let dec = sign
         .then_ignore(text::inline_whitespace())
@@ -29,7 +32,9 @@ pub fn number<'src>(bits: u32) -> impl Parser<'src, &'src str, i32> {
     let oct = just("0o").ignore_then(number_radix(8, bits));
     let hex = just("0x").ignore_then(number_radix(16, bits));
 
-    choice((bin, oct, hex, dec, char())).inline()
+    choice((bin, oct, hex, dec, char()))
+        .map(|n| n.try_into().unwrap_or(O::default()))
+        .inline()
 }
 
 pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
@@ -69,39 +74,39 @@ mod tests {
 
     #[test]
     fn test_number() {
-        let result = number(32).parse("42");
+        let result = number::<i32>(32).parse("42");
         assert_eq!(result.unwrap(), 42);
-        let result = number(32).parse("-42");
+        let result = number::<i32>(32).parse("-42");
         assert_eq!(result.unwrap(), -42);
-        let result = number(32).parse("- 42");
+        let result = number::<i32>(32).parse("- 42");
         assert_eq!(result.unwrap(), -42);
-        let result = number(32).parse("-\n42");
+        let result = number::<i32>(32).parse("-\n42");
         assert_eq!(result.has_errors(), true);
 
-        let result = number(12).parse("4095");
+        let result = number::<i16>(12).parse("4095");
         assert_eq!(result.unwrap(), 4095);
-        let result = number(12).parse("4096");
+        let result = number::<i16>(12).parse("4096");
         assert_eq!(result.has_errors(), true);
     }
 
     #[test]
     fn test_number_radix() {
-        let result = number(32).parse("0b10");
+        let result = number::<i32>(32).parse("0b10");
         assert_eq!(result.unwrap(), 0b10);
-        let result = number(32).parse("0o42");
+        let result = number::<i32>(32).parse("0o42");
         assert_eq!(result.unwrap(), 0o42);
-        let result = number(32).parse("0x42");
+        let result = number::<i32>(32).parse("0x42");
         assert_eq!(result.unwrap(), 0x42);
-        let result = number(32).parse("-0x42");
+        let result = number::<i32>(32).parse("-0x42");
         assert_eq!(result.has_errors(), true);
     }
 
     #[test]
     fn test_char() {
-        let result = number(32).parse("'a'");
-        assert_eq!(result.unwrap(), 'a' as i32);
+        let result = number::<u8>(8).parse("'a'");
+        assert_eq!(result.unwrap(), 'a' as u8);
         let result = char().parse("'a'");
-        assert_eq!(result.unwrap(), 'a' as i32);
+        assert_eq!(result.unwrap(), 'a' as i64);
         let result = char().parse("'🚀'");
         assert_eq!(result.has_errors(), true);
     }
