@@ -19,32 +19,24 @@ fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i64
         .inline()
 }
 
-pub fn number<'src, O>(bits: u32) -> impl Parser<'src, &'src str, O>
-where
-    O: TryFrom<i64> + Default,
-{
-    let sign = just('-').to(-1).or(empty().to(1));
-    let dec = sign
-        .then_ignore(text::inline_whitespace())
-        .then(number_radix(10, bits))
-        .map(|(s, n)| s * n);
+pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
+    bits: u32,
+    from_le_bytes: F,
+) -> impl Parser<'src, &'src str, O> {
+    let neg = just('-')
+        .ignore_then(text::inline_whitespace())
+        .ignore_then(number_radix(10, bits - 1))
+        .map(|n| -n);
+    let pos = number_radix(10, bits);
+    let dec = choice((neg, pos));
 
     let bin = just("0b").ignore_then(number_radix(2, bits));
     let oct = just("0o").ignore_then(number_radix(8, bits));
     let hex = just("0x").ignore_then(number_radix(16, bits));
 
-    choice((bin, oct, hex, dec, char()))
-        .map(|n| n.try_into().unwrap_or(O::default()))
+    choice((bin, oct, hex, dec, char())) // dec must come AFTER prefixed
+        .map(move |n| from_le_bytes(n.to_le_bytes()[..N].try_into().unwrap()))
         .inline()
-}
-
-pub fn list<'src, O, A: Parser<'src, &'src str, O>>(
-    first: A,
-    elem: A,
-) -> impl Parser<'src, &'src str, Vec<O>> {
-    first
-        .then(just(',').ignore_then(elem).repeated().collect::<Vec<O>>())
-        .map(|(f, v)| vec![f].into_iter().chain(v).collect())
 }
 
 pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
@@ -91,36 +83,36 @@ mod tests {
 
     #[test]
     fn test_number() {
-        let result = number::<i32>(32).parse("42");
+        let result = number(32, i32::from_le_bytes).parse("42");
         assert_eq!(result.unwrap(), 42);
-        let result = number::<i32>(32).parse("-42");
+        let result = number(32, i32::from_le_bytes).parse("-42");
         assert_eq!(result.unwrap(), -42);
-        let result = number::<i32>(32).parse("- 42");
+        let result = number(32, i32::from_le_bytes).parse("- 42");
         assert_eq!(result.unwrap(), -42);
-        let result = number::<i32>(32).parse("-\n42");
+        let result = number(32, i32::from_le_bytes).parse("-\n42");
         assert_eq!(result.has_errors(), true);
 
-        let result = number::<i16>(12).parse("4095");
+        let result = number(12, i16::from_le_bytes).parse("0xfff");
         assert_eq!(result.unwrap(), 4095);
-        let result = number::<i16>(12).parse("4096");
+        let result = number(12, i16::from_le_bytes).parse("0x1000");
         assert_eq!(result.has_errors(), true);
     }
 
     #[test]
     fn test_number_radix() {
-        let result = number::<i32>(32).parse("0b10");
+        let result = number(32, i32::from_le_bytes).parse("0b10");
         assert_eq!(result.unwrap(), 0b10);
-        let result = number::<i32>(32).parse("0o42");
+        let result = number(32, i32::from_le_bytes).parse("0o42");
         assert_eq!(result.unwrap(), 0o42);
-        let result = number::<i32>(32).parse("0x42");
+        let result = number(32, i32::from_le_bytes).parse("0x42");
         assert_eq!(result.unwrap(), 0x42);
-        let result = number::<i32>(32).parse("-0x42");
+        let result = number(32, i32::from_le_bytes).parse("-0x42");
         assert_eq!(result.has_errors(), true);
     }
 
     #[test]
     fn test_char() {
-        let result = number::<u8>(8).parse("'a'");
+        let result = number(8, u8::from_le_bytes).parse("'a'");
         assert_eq!(result.unwrap(), 'a' as u8);
         let result = char().parse("'a'");
         assert_eq!(result.unwrap(), 'a' as i64);
@@ -139,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_h_padded() {
+    fn test_inline() {
         let result = just("just").inline().parse(" \njust\n ");
         assert_eq!(result.has_errors(), true);
         let result = just("just").inline().parse("  just # comment");
