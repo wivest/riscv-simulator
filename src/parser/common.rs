@@ -93,8 +93,12 @@ mod tests {
         assert_eq!(result.has_errors(), true);
 
         let result = number(12, i16::from_le_bytes).parse("0xfff");
-        assert_eq!(result.unwrap(), 4095);
+        assert_eq!(result.unwrap(), 0xfff);
         let result = number(12, i16::from_le_bytes).parse("0x1000");
+        assert_eq!(result.has_errors(), true);
+        let result = number(12, i16::from_le_bytes).parse("-2047");
+        assert_eq!(result.unwrap(), -2047);
+        let result = number(12, i16::from_le_bytes).parse("-2048");
         assert_eq!(result.has_errors(), true);
     }
 
