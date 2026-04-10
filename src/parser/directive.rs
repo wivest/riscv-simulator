@@ -17,38 +17,27 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
         .map(|s| Directive::Asciz(s))
 }
 
-fn byte<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte")
-        .ignore_then(list(number(8), number(8)))
-        .map(|v| Directive::Unaligned(v))
-}
-
-fn byte2<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte2")
-        .ignore_then(list(number(16), number(16)))
-        .map(|v: Vec<u16>| {
-            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
-        })
-}
-
-fn byte4<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte4")
-        .ignore_then(list(number(32), number(32)))
-        .map(|v: Vec<u32>| {
-            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
-        })
-}
-
-fn byte8<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte8")
-        .ignore_then(list(number(64), number(64)))
-        .map(|v: Vec<u64>| {
-            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
+fn unaligned<'src, T: TryFrom<i64> + Default, const N: usize, F: Fn(T) -> [u8; N] + 'src>(
+    dir: &'src str,
+    bytes: u32,
+    to_bytes: F,
+) -> impl Parser<'src, &'src str, Directive> {
+    just(dir)
+        .ignore_then(list(number(bytes * 8), number(bytes * 8)))
+        .map(move |v: Vec<T>| {
+            Directive::Unaligned(v.into_iter().flat_map(|n| to_bytes(n).to_vec()).collect())
         })
 }
 
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
-    choice((org(), asciz(), byte(), byte2(), byte4(), byte8()))
+    choice((
+        org(),
+        asciz(),
+        unaligned(".byte", 1, u8::to_ne_bytes),
+        unaligned(".2byte", 2, u16::to_ne_bytes),
+        unaligned(".4byte", 4, u32::to_ne_bytes),
+        unaligned(".8byte", 8, u64::to_ne_bytes),
+    ))
 }
 
 #[cfg(test)]
