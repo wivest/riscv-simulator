@@ -17,37 +17,23 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
         .map(|s| Directive::Asciz(s))
 }
 
-fn unaligned<
-    'src,
-    T: TryFrom<i64> + Default,
-    const N: usize,
-    FT: Fn(T) -> [u8; N] + 'src,
-    FF: Fn([u8; N]) -> T,
->(
-    dir: &'src str,
-    bytes: u32,
-    to_bytes: FT,
-    from_le_bytes: FF,
-) -> impl Parser<'src, &'src str, Directive> {
-    just(dir)
-        .ignore_then(
-            number(bytes * 8, from_le_bytes)
-                .separated_by(just(','))
-                .collect(),
-        )
-        .map(move |v: Vec<T>| {
-            Directive::Unaligned(v.into_iter().flat_map(|n| to_bytes(n).to_vec()).collect())
-        })
+fn unaligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str, Directive> {
+    let list = number_le_bytes(B as u32 * 8)
+        .separated_by(just(','))
+        .collect();
+    just(dir).ignore_then(list).map(move |v: Vec<[u8; B]>| {
+        Directive::Unaligned(v.into_iter().flat_map(|n| n.to_vec()).collect())
+    })
 }
 
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
     choice((
         org(),
         asciz(),
-        unaligned(".byte", 1, i8::to_ne_bytes, i8::from_le_bytes),
-        unaligned(".2byte", 2, i16::to_ne_bytes, i16::from_le_bytes),
-        unaligned(".4byte", 4, i32::to_ne_bytes, i32::from_le_bytes),
-        unaligned(".8byte", 8, i64::to_ne_bytes, i64::from_le_bytes),
+        unaligned::<1>(".byte"),
+        unaligned::<2>(".2byte"),
+        unaligned::<4>(".4byte"),
+        unaligned::<8>(".8byte"),
     ))
 }
 
@@ -63,10 +49,9 @@ mod tests {
 
     #[test]
     fn byte() {
-        let result = unaligned(".byte", 1, i8::to_ne_bytes, i8::from_le_bytes).parse(".byte 42");
+        let result = unaligned::<1>(".byte").parse(".byte 42");
         assert_eq!(result.unwrap(), Directive::Unaligned(vec![42]));
-        let result =
-            unaligned(".byte", 1, i8::to_ne_bytes, i8::from_le_bytes).parse(".byte 0x88, 255, -1");
+        let result = unaligned::<1>(".byte").parse(".byte 0x88, 255, -1");
         assert_eq!(
             result.unwrap(),
             Directive::Unaligned(vec![0x88, 255, -1i8 as u8])

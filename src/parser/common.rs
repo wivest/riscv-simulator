@@ -19,10 +19,7 @@ fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i64
         .inline()
 }
 
-pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
-    bits: u32,
-    from_le_bytes: F,
-) -> impl Parser<'src, &'src str, O> {
+pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl Parser<'src, &'src str, [u8; N]> {
     let neg = just('-')
         .ignore_then(text::inline_whitespace())
         .ignore_then(number_radix(10, bits - 1))
@@ -35,8 +32,15 @@ pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
     let hex = just("0x").ignore_then(number_radix(16, bits));
 
     choice((bin, oct, hex, dec, char())) // dec must come AFTER prefixed
-        .map(move |n| from_le_bytes(n.to_le_bytes()[..N].try_into().unwrap()))
+        .map(move |n| n.to_le_bytes()[..N].try_into().unwrap())
         .inline()
+}
+
+pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
+    bits: u32,
+    from_le_bytes: F,
+) -> impl Parser<'src, &'src str, O> {
+    number_le_bytes(bits).map(move |bytes| from_le_bytes(bytes))
 }
 
 pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
