@@ -1,7 +1,7 @@
 pub use chumsky::prelude::*;
 
-pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, i64> {
-    text::int(radix).map(move |s: &'src str| i64::from_str_radix(s, radix).unwrap())
+pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, u64> {
+    text::int(radix).map(move |s: &'src str| u64::from_str_radix(s, radix).unwrap())
 }
 
 fn char<'src>() -> impl Parser<'src, &'src str, i64> {
@@ -14,7 +14,8 @@ fn char<'src>() -> impl Parser<'src, &'src str, i64> {
 
 fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i64> {
     digits(radix)
-        .filter(move |n| 0i64.leading_zeros() - n.leading_zeros() <= bits)
+        .filter(move |n| 0u64.leading_zeros() - n.leading_zeros() <= bits)
+        .map(|n| n as i64)
         .inline()
 }
 
@@ -80,6 +81,13 @@ fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_digits() {
+        // test for max possible value
+        let result = digits(16).parse("FFFFFFFFFFFFFFFF");
+        assert_eq!(result.unwrap(), u64::MAX);
+    }
 
     #[test]
     fn test_number() {
