@@ -19,26 +19,32 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
 
 fn byte<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".byte")
-        .ignore_then(number(8))
-        .map(|n: u8| Directive::Byte(n))
+        .ignore_then(list(number(8), number(8)))
+        .map(|v| Directive::Unaligned(v))
 }
 
 fn byte2<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte")
-        .ignore_then(number(16))
-        .map(|n: u16| Directive::Byte2(n))
+    just(".byte2")
+        .ignore_then(list(number(16), number(16)))
+        .map(|v: Vec<u16>| {
+            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
+        })
 }
 
 fn byte4<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte")
-        .ignore_then(number(32))
-        .map(|n: u32| Directive::Byte4(n))
+    just(".byte4")
+        .ignore_then(list(number(32), number(32)))
+        .map(|v: Vec<u32>| {
+            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
+        })
 }
 
 fn byte8<'src>() -> impl Parser<'src, &'src str, Directive> {
-    just(".byte")
-        .ignore_then(number(64)) // FIXME: i32 is not capable of storing i64
-        .map(|n: u64| Directive::Byte8(n))
+    just(".byte8")
+        .ignore_then(list(number(64), number(64)))
+        .map(|v: Vec<u64>| {
+            Directive::Unaligned(v.into_iter().map(|n| n.to_ne_bytes()).flatten().collect())
+        })
 }
 
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {

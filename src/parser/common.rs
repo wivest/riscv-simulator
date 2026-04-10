@@ -37,6 +37,15 @@ where
         .inline()
 }
 
+pub fn list<'src, O, A: Parser<'src, &'src str, O>>(
+    first: A,
+    elem: A,
+) -> impl Parser<'src, &'src str, Vec<O>> {
+    first
+        .then(just(',').ignore_then(elem).repeated().collect::<Vec<O>>())
+        .map(|(f, v)| vec![f].into_iter().chain(v).collect())
+}
+
 pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
     fn inline(self) -> impl Parser<'src, &'src str, O> {
         self.padded_by(text::inline_whitespace().then(comment().or_not()))

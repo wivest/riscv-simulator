@@ -38,34 +38,9 @@ impl Processor {
         }
     }
 
-    pub fn store_bytes(&mut self, bytes: Vec<(usize, u8)>) {
-        for (at, byte) in bytes {
-            self.memory.set(at, byte);
-        }
-    }
-
-    pub fn store_bytes2(&mut self, bytes: Vec<(usize, u16)>) {
-        for (at, byte) in bytes {
-            // TODO: endianness
-            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
-                self.memory.set(at + i, b);
-            }
-        }
-    }
-
-    pub fn store_bytes4(&mut self, bytes: Vec<(usize, u32)>) {
-        for (at, byte) in bytes {
-            // TODO: endianness
-            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
-                self.memory.set(at + i, b);
-            }
-        }
-    }
-
-    pub fn store_bytes8(&mut self, bytes: Vec<(usize, u64)>) {
-        for (at, byte) in bytes {
-            // TODO: endianness
-            for (i, b) in byte.to_ne_bytes().into_iter().enumerate() {
+    pub fn store_unaligned(&mut self, unaligned: Vec<(usize, Vec<u8>)>) {
+        for (at, bytes) in unaligned {
+            for (i, b) in bytes.into_iter().enumerate() {
                 self.memory.set(at + i, b);
             }
         }
