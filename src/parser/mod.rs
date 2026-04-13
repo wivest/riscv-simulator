@@ -46,7 +46,7 @@ pub fn program<'src>() -> impl Parser<
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
         let mut pc = 0usize;
         let mut strings = Vec::new();
-        let mut unaligned = Vec::new();
+        let mut data = Vec::new();
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
@@ -80,13 +80,19 @@ pub fn program<'src>() -> impl Parser<
                 }
                 Line::Directive(Directive::Unaligned(bytes)) => {
                     let blen = bytes.len();
-                    unaligned.push((pc, bytes));
+                    data.push((pc, bytes));
+                    pc += blen;
+                }
+                Line::Directive(Directive::Aligned(size, bytes)) => {
+                    let blen = bytes.len();
+                    pc = pc.next_multiple_of(size);
+                    data.push((pc, bytes));
                     pc += blen;
                 }
             }
         }
 
-        (strings, unaligned, instrs, defs)
+        (strings, data, instrs, defs)
     })
 }
 

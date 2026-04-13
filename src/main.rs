@@ -25,10 +25,10 @@ fn main() {
     if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok((strings, unaligned, instrs, defs)) => {
+            Ok((strings, data, instrs, defs)) => {
                 let mut proc = Processor::new(1024);
                 proc.store_strings(strings);
-                proc.store_unaligned(unaligned);
+                proc.store_data(data);
                 proc.store_instrs(linker::translate(instrs, defs));
                 proc.execute();
                 println!("{:?}", proc.memory);

@@ -26,6 +26,15 @@ fn unaligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src st
     })
 }
 
+fn aligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str, Directive> {
+    let list = number_le_bytes(B as u32 * 8)
+        .separated_by(just(','))
+        .collect();
+    just(dir).ignore_then(list).map(move |v: Vec<[u8; B]>| {
+        Directive::Aligned(B, v.into_iter().flat_map(|n| n.to_vec()).collect())
+    })
+}
+
 pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
     choice((
         org(),
@@ -34,6 +43,10 @@ pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
         unaligned::<2>(".2byte"),
         unaligned::<4>(".4byte"),
         unaligned::<8>(".8byte"),
+        aligned::<2>(".half"),
+        aligned::<2>(".short"),
+        aligned::<4>(".word"),
+        aligned::<8>(".dword"),
     ))
 }
 

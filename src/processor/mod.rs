@@ -38,8 +38,8 @@ impl Processor {
         }
     }
 
-    pub fn store_unaligned(&mut self, unaligned: Vec<(usize, Vec<u8>)>) {
-        for (at, bytes) in unaligned {
+    pub fn store_data(&mut self, data: Vec<(usize, Vec<u8>)>) {
+        for (at, bytes) in data {
             for (i, b) in bytes.into_iter().enumerate() {
                 self.memory.set(at + i, b);
             }
