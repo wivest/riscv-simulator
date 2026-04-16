@@ -11,10 +11,10 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
         .then_ignore(just('"'));
-    just(".asciz")
+    choice((just(".asciz"), just(".string")))
         .ignore_then(text::inline_whitespace())
         .ignore_then(string)
-        .map(|s| Directive::Asciz(s))
+        .map(|s: String| Directive::Unaligned(s.bytes().chain(std::iter::once(0)).collect()))
 }
 
 fn unaligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str, Directive> {
@@ -57,7 +57,8 @@ mod tests {
     #[test]
     fn asciz_dir() {
         let result = asciz().parse(".asciz \"hello world!\"");
-        assert_eq!(result.unwrap(), Directive::Asciz("hello world!".to_owned()));
+        let expected = b"hello world!\0".to_vec();
+        assert_eq!(result.unwrap(), Directive::Unaligned(expected));
     }
 
     #[test]

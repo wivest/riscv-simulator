@@ -28,7 +28,6 @@ pub fn program<'src>() -> impl Parser<
     'src,
     &'src str,
     (
-        Vec<(usize, String)>,
         Vec<(usize, Vec<u8>)>,
         Vec<(
             usize,
@@ -45,7 +44,6 @@ pub fn program<'src>() -> impl Parser<
 
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
         let mut pc = 0usize;
-        let mut strings = Vec::new();
         let mut data = Vec::new();
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
@@ -73,11 +71,6 @@ pub fn program<'src>() -> impl Parser<
                     ()
                 }
                 Line::Directive(Directive::Org(at)) => pc = at,
-                Line::Directive(Directive::Asciz(s)) => {
-                    let slen = s.len() + 1;
-                    strings.push((pc, s));
-                    pc += slen;
-                }
                 Line::Directive(Directive::Unaligned(bytes)) => {
                     let blen = bytes.len();
                     data.push((pc, bytes));
@@ -92,7 +85,7 @@ pub fn program<'src>() -> impl Parser<
             }
         }
 
-        (strings, data, instrs, defs)
+        (data, instrs, defs)
     })
 }
 
