@@ -28,7 +28,7 @@ fn main() {
             Ok((data, instrs, defs)) => {
                 let mut proc = Processor::new(1024);
                 proc.store_data(data);
-                proc.store_instrs(linker::translate(instrs, defs));
+                proc.store_instrs(linker::link(instrs, defs));
                 proc.execute();
                 println!("{:?}", proc.memory);
             }
