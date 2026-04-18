@@ -1,4 +1,4 @@
-use crate::directive::Directive;
+use crate::directive::{Directive, Section};
 use chumsky::prelude::*;
 use real::*;
 use std::collections::HashMap;
@@ -82,6 +82,10 @@ pub fn program<'src>() -> impl Parser<
                     data.push((pc, bytes));
                     pc += blen;
                 }
+                Line::Directive(Directive::Section(section)) => match section {
+                    Section::Text => {}
+                    _ => {}
+                },
             }
         }
 
