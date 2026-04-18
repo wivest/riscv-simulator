@@ -17,20 +17,15 @@ fn translate_instr(
     addr: usize,
     defs: &HashMap<Definition, usize>,
 ) -> Instruction<i32, i32> {
+    let resolve = |l| *defs.get(&Definition(l)).unwrap_or(&0) as i32;
     let calc_offset = |offset| match offset {
-        Offset::Label(Reference(l)) => *defs.get(&Definition(l)).unwrap_or(&0) as i32 - addr as i32,
+        Offset::Label(Reference(l)) => resolve(l) - addr as i32,
         Offset::Value(v) => v,
     };
     let calc_imm = |imm| match imm {
         Immediate::Value(v) => v,
-        Immediate::Upper(Reference(l)) => {
-            let v = *defs.get(&Definition(l)).unwrap_or(&0) as i32;
-            v >> 12
-        }
-        Immediate::Lower(Reference(l)) => {
-            let v = *defs.get(&Definition(l)).unwrap_or(&0) as i32;
-            v << 20 >> 20
-        }
+        Immediate::Upper(Reference(l)) => resolve(l) >> 12,
+        Immediate::Lower(Reference(l)) => resolve(l) << 20 >> 20,
     };
 
     match instr {
