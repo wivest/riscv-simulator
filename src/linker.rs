@@ -11,14 +11,14 @@ pub fn link_section<'a>(
         memory: Memory::new(),
         pc: 0,
     };
-    for (at, word) in section.memory.words {
+    for (div4, word) in section.memory.words {
         match word {
             Word::Instruction(i) => {
-                let instr = translate_instr(i, at, &defs);
-                linked.memory.store_instr(at, instr);
+                let instr = translate_instr(i, div4 * 4, &defs);
+                linked.memory.store_instr(div4 * 4, instr);
             }
             Word::Value(v) => {
-                linked.memory.words.insert(at, Word::Value(v));
+                linked.memory.words.insert(div4, Word::Value(v));
             }
         }
     }

@@ -83,7 +83,6 @@ pub fn program<'src>() -> impl Parser<
                 }
                 Line::Label(def) => {
                     defs.insert(def, curr.pc);
-                    ()
                 }
                 Line::Directive(Directive::Org(at)) => curr.pc = at,
                 Line::Directive(Directive::Unaligned(bytes)) => {
