@@ -3,16 +3,6 @@ use crate::parser::token::{Definition, Immediate, Offset, Reference};
 use crate::processor::memory::{Memory, Sect, Word};
 use std::collections::HashMap;
 
-pub fn link<'a>(
-    instrs: Vec<(usize, Instruction<Immediate, Offset>)>,
-    defs: &'a HashMap<Definition, usize>,
-) -> Vec<(usize, Instruction<i32, i32>)> {
-    instrs
-        .into_iter()
-        .map(|(addr, instr)| (addr, translate_instr(instr, addr, &defs)))
-        .collect()
-}
-
 pub fn link_section<'a>(
     section: Sect<Immediate, Offset>,
     defs: &'a HashMap<Definition, usize>,

@@ -31,11 +31,6 @@ pub fn program<'src>() -> impl Parser<
     'src,
     &'src str,
     (
-        Vec<(usize, Vec<u8>)>,
-        Vec<(
-            usize,
-            Instruction<token::Immediate<'src>, token::Offset<'src>>,
-        )>,
         HashMap<token::Definition<'src>, usize>,
         Sect<token::Immediate<'src>, token::Offset<'src>>,
     ),
@@ -47,9 +42,6 @@ pub fn program<'src>() -> impl Parser<
     let line = choice((real_ins, pseudo_ins, labels, dirs));
 
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
-        let mut pc = 0usize;
-        let mut data = Vec::new();
-        let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
         let mut text_section = Sect {
@@ -71,7 +63,7 @@ pub fn program<'src>() -> impl Parser<
         let mut active = Section::Text;
 
         for line in lines {
-            let curr_section = match active {
+            let curr = match active {
                 Section::Text => &mut text_section,
                 Section::Data => &mut data_section,
                 Section::Rodata => &mut rodata_section,
@@ -80,44 +72,38 @@ pub fn program<'src>() -> impl Parser<
 
             match line {
                 Line::Instruction(real) => {
-                    instrs.push((pc, real));
-                    curr_section.memory.store_instr(curr_section.pc, real);
-                    pc += 4;
-                    curr_section.pc += 4;
+                    curr.memory.store_instr(curr.pc, real);
+                    curr.pc += 4;
                 }
-                Line::Pseudo(pseudo) => instrs.extend(pseudo.into_iter().map(|instr| {
-                    (
-                        {
-                            pc += 4;
-                            pc - 4
-                        },
-                        instr,
-                    )
-                })),
+                Line::Pseudo(pseudo) => {
+                    for i in pseudo {
+                        curr.memory.store_instr(curr.pc, i);
+                        curr.pc += 4;
+                    }
+                }
                 Line::Label(def) => {
-                    defs.insert(def, pc);
+                    defs.insert(def, curr.pc);
                     ()
                 }
-                Line::Directive(Directive::Org(at)) => {
-                    pc = at;
-                    curr_section.pc = at;
-                }
+                Line::Directive(Directive::Org(at)) => curr.pc = at,
                 Line::Directive(Directive::Unaligned(bytes)) => {
-                    let blen = bytes.len();
-                    data.push((pc, bytes));
-                    pc += blen;
+                    for b in bytes {
+                        curr.memory.set(curr.pc, b);
+                        curr.pc += 1;
+                    }
                 }
                 Line::Directive(Directive::Aligned(size, bytes)) => {
-                    let blen = bytes.len();
-                    pc = pc.next_multiple_of(size);
-                    data.push((pc, bytes));
-                    pc += blen;
+                    curr.pc = curr.pc.next_multiple_of(size);
+                    for b in bytes {
+                        curr.memory.set(curr.pc, b);
+                        curr.pc += 1;
+                    }
                 }
                 Line::Directive(Directive::Section(section)) => active = section,
             }
         }
 
-        (data, instrs, defs, text_section)
+        (defs, text_section)
     })
 }
 

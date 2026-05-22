@@ -1,4 +1,4 @@
-use crate::{instruction::Instruction, processor::memory::Sect};
+use crate::processor::memory::Sect;
 use memory::Memory;
 
 pub mod instructions;
@@ -31,20 +31,6 @@ impl Processor {
 
     pub fn store_section(&mut self, section: Sect<i32, i32>) {
         self.memory.copy_memory(section.memory);
-    }
-
-    pub fn store_data(&mut self, data: Vec<(usize, Vec<u8>)>) {
-        for (at, bytes) in data {
-            for (i, b) in bytes.into_iter().enumerate() {
-                self.memory.set(at + i, b);
-            }
-        }
-    }
-
-    pub fn store_instrs(&mut self, instrs: Vec<(usize, Instruction<i32, i32>)>) {
-        instrs.into_iter().for_each(|(addr, instr)| {
-            self.memory.store_instr(addr, instr);
-        });
     }
 
     pub fn execute(&mut self) {
