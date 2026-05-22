@@ -6,7 +6,7 @@ pub mod memory;
 
 pub struct Processor {
     pub pc: usize,
-    pub memory: Memory,
+    pub memory: Memory<i32, i32>,
     registers: [i32; 32],
 }
 

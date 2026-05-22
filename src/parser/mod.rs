@@ -1,4 +1,7 @@
-use crate::directive::{Directive, Section};
+use crate::{
+    directive::{Directive, Section},
+    processor::memory::{Memory, Sect},
+};
 use chumsky::prelude::*;
 use real::*;
 use std::collections::HashMap;
@@ -34,6 +37,7 @@ pub fn program<'src>() -> impl Parser<
             Instruction<token::Immediate<'src>, token::Offset<'src>>,
         )>,
         HashMap<token::Definition<'src>, usize>,
+        Sect<token::Immediate<'src>, token::Offset<'src>>,
     ),
 > {
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
@@ -48,15 +52,39 @@ pub fn program<'src>() -> impl Parser<
         let mut instrs = Vec::new();
         let mut defs = HashMap::new();
 
+        let mut text_section = Sect {
+            memory: Memory::new(),
+            pc: 0,
+        };
+        let mut data_section = Sect {
+            memory: Memory::new(),
+            pc: 0,
+        };
+        let mut rodata_section = Sect {
+            memory: Memory::new(),
+            pc: 0,
+        };
+        let mut bss_section = Sect {
+            memory: Memory::new(),
+            pc: 0,
+        };
+        let mut active = Section::Text;
+
         for line in lines {
+            let curr_section = match active {
+                Section::Text => &mut text_section,
+                Section::Data => &mut data_section,
+                Section::Rodata => &mut rodata_section,
+                Section::Bss => &mut bss_section,
+            };
+
             match line {
-                Line::Instruction(real) => instrs.push((
-                    {
-                        pc += 4;
-                        pc - 4
-                    },
-                    real,
-                )),
+                Line::Instruction(real) => {
+                    instrs.push((pc, real));
+                    curr_section.memory.store_instr(curr_section.pc, real);
+                    pc += 4;
+                    curr_section.pc += 4;
+                }
                 Line::Pseudo(pseudo) => instrs.extend(pseudo.into_iter().map(|instr| {
                     (
                         {
@@ -82,14 +110,11 @@ pub fn program<'src>() -> impl Parser<
                     data.push((pc, bytes));
                     pc += blen;
                 }
-                Line::Directive(Directive::Section(section)) => match section {
-                    Section::Text => {}
-                    _ => {}
-                },
+                Line::Directive(Directive::Section(section)) => active = section,
             }
         }
 
-        (data, instrs, defs)
+        (data, instrs, defs, text_section)
     })
 }
 

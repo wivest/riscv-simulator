@@ -25,7 +25,7 @@ fn main() {
     if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok((data, instrs, defs)) => {
+            Ok((data, instrs, defs, _)) => {
                 let mut proc = Processor::new(1024);
                 proc.store_data(data);
                 proc.store_instrs(linker::link(instrs, defs));
