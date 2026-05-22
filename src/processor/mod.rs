@@ -1,4 +1,4 @@
-use crate::instruction::Instruction;
+use crate::{instruction::Instruction, processor::memory::Sect};
 use memory::Memory;
 
 pub mod instructions;
@@ -27,6 +27,10 @@ impl Processor {
         if index != 0 {
             self.registers[index] = value;
         };
+    }
+
+    pub fn store_section(&mut self, section: Sect<i32, i32>) {
+        self.memory.copy_memory(section.memory);
     }
 
     pub fn store_data(&mut self, data: Vec<(usize, Vec<u8>)>) {

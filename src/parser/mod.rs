@@ -98,7 +98,10 @@ pub fn program<'src>() -> impl Parser<
                     defs.insert(def, pc);
                     ()
                 }
-                Line::Directive(Directive::Org(at)) => pc = at,
+                Line::Directive(Directive::Org(at)) => {
+                    pc = at;
+                    curr_section.pc = at;
+                }
                 Line::Directive(Directive::Unaligned(bytes)) => {
                     let blen = bytes.len();
                     data.push((pc, bytes));

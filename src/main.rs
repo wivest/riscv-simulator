@@ -25,10 +25,12 @@ fn main() {
     if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok((data, instrs, defs, _)) => {
+            Ok((data, instrs, defs, sect)) => {
                 let mut proc = Processor::new(1024);
                 proc.store_data(data);
-                proc.store_instrs(linker::link(instrs, defs));
+                proc.store_instrs(linker::link(instrs, &defs));
+                let linked = linker::link_section(sect, &defs);
+                proc.store_section(linked);
                 proc.execute();
                 println!("{:?}", proc.memory);
             }

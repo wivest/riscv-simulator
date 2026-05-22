@@ -2,7 +2,8 @@ use crate::instruction::Instruction;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-enum Word<I, O> {
+// TODO: revert to private
+pub enum Word<I, O> {
     Instruction(Instruction<I, O>),
     Value(u32),
 }
@@ -15,7 +16,8 @@ pub struct Sect<I, O> {
 
 #[derive(Debug)]
 pub struct Memory<I, O> {
-    words: HashMap<usize, Word<I, O>>,
+    // TODO: revert to private
+    pub words: HashMap<usize, Word<I, O>>,
 }
 
 impl<I: Copy, O: Copy> Memory<I, O> {
@@ -55,5 +57,11 @@ impl<I: Copy, O: Copy> Memory<I, O> {
 
     pub fn store_instr(&mut self, addr: usize, instr: Instruction<I, O>) {
         self.words.insert(addr / 4, Word::Instruction(instr));
+    }
+
+    pub fn copy_memory(&mut self, other: Self) {
+        for (at, word) in other.words {
+            self.words.insert(at, word);
+        }
     }
 }
