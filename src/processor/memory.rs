@@ -2,7 +2,6 @@ use crate::instruction::Instruction;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-// TODO: revert to private
 pub enum Word<I, O> {
     Instruction(Instruction<I, O>),
     Value(u32),
@@ -21,8 +20,8 @@ pub struct Memory<I, O> {
 }
 
 impl<I: Copy, O: Copy> Memory<I, O> {
-    pub fn new() -> Memory<I, O> {
-        Memory {
+    pub fn new() -> Self {
+        Self {
             words: HashMap::new(),
         }
     }
@@ -47,6 +46,10 @@ impl<I: Copy, O: Copy> Memory<I, O> {
             .insert(addr / 4, Word::Value(u32::from_ne_bytes(bytes)));
     }
 
+    pub fn set_word(&mut self, addr: usize, value: u32) {
+        self.words.insert(addr / 4, Word::Value(value));
+    }
+
     pub fn load_instr(&self, pc: usize) -> Option<Instruction<I, O>> {
         let word = self.words.get(&(pc / 4))?;
         match word {
@@ -60,8 +63,6 @@ impl<I: Copy, O: Copy> Memory<I, O> {
     }
 
     pub fn copy_memory(&mut self, other: Self) {
-        for (at, word) in other.words {
-            self.words.insert(at, word);
-        }
+        self.words.extend(other.words);
     }
 }

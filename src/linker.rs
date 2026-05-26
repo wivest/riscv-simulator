@@ -6,19 +6,17 @@ use std::collections::HashMap;
 pub fn link_section<'a>(
     section: Sect<Immediate, Offset>,
     defs: &'a HashMap<Definition, usize>,
-) -> Sect<i32, i32> {
-    let mut linked = Sect {
-        memory: Memory::new(),
-        pc: 0,
-    };
+) -> Memory<i32, i32> {
+    let mut linked = Memory::new();
     for (div4, word) in section.memory.words {
+        let addr = div4 * 4;
         match word {
             Word::Instruction(i) => {
-                let instr = translate_instr(i, div4 * 4, &defs);
-                linked.memory.store_instr(div4 * 4, instr);
+                let instr = translate_instr(i, addr, &defs);
+                linked.store_instr(addr, instr);
             }
             Word::Value(v) => {
-                linked.memory.words.insert(div4, Word::Value(v));
+                linked.set_word(addr, v);
             }
         }
     }
