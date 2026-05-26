@@ -1,29 +1,8 @@
 use crate::instruction::Instruction::{self, *};
 use crate::parser::token::{Definition, Immediate, Offset, Reference};
-use crate::processor::memory::{Memory, Sect, Word};
 use std::collections::HashMap;
 
-pub fn link_section<'a>(
-    section: Sect<Immediate, Offset>,
-    defs: &'a HashMap<Definition, usize>,
-) -> Memory<i32, i32> {
-    let mut linked = Memory::new();
-    for (div4, word) in section.memory.words {
-        let addr = div4 * 4;
-        match word {
-            Word::Instruction(i) => {
-                let instr = translate_instr(i, addr, &defs);
-                linked.store_instr(addr, instr);
-            }
-            Word::Value(v) => {
-                linked.set_word(addr, v);
-            }
-        }
-    }
-    linked
-}
-
-fn translate_instr(
+pub fn translate_instr(
     instr: Instruction<Immediate, Offset>,
     addr: usize,
     defs: &HashMap<Definition, usize>,

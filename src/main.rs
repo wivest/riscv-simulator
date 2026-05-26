@@ -27,7 +27,7 @@ fn main() {
         match result {
             Ok((defs, sect)) => {
                 let mut proc = Processor::new(1024);
-                let linked = linker::link_section(sect, &defs);
+                let linked = sect.memory.link(linker::translate_instr, &defs);
                 proc.memory.copy_memory(linked);
                 proc.execute();
                 println!("{:?}", proc.memory);
