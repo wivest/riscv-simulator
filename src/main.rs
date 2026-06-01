@@ -30,7 +30,7 @@ fn main() {
                 let linked = sect.memory.link(linker::translate_instr, &defs, sect.base);
                 proc.memory.copy_memory(linked);
                 proc.execute();
-                println!("{:?}", proc.memory);
+                println!("{}", proc.memory);
             }
             Err(err) => println!("{err:?}"),
         }

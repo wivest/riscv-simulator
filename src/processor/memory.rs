@@ -91,3 +91,14 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         )
     }
 }
+
+impl<I: std::fmt::Debug, O: std::fmt::Debug> std::fmt::Display for Memory<I, O> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut words = self.0.iter().collect::<Vec<_>>();
+        words.sort_by_key(|&(k, _)| *k);
+        for (div4, word) in words {
+            writeln!(f, "{:#x}: {:?}", div4 * 4, word)?
+        }
+        std::fmt::Result::Ok(())
+    }
+}
