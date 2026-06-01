@@ -9,8 +9,19 @@ pub enum Word<I, O> {
 
 #[derive(Debug)]
 pub struct Sect<I, O> {
-    pub memory: Memory<I, O>,
+    pub base: usize,
     pub pc: usize,
+    pub memory: Memory<I, O>,
+}
+
+impl<I: Copy, O: Copy> Sect<I, O> {
+    pub fn new(base: usize) -> Self {
+        Sect {
+            base,
+            pc: 0,
+            memory: Memory::new(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -64,16 +75,17 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         self,
         tr: F,
         defs: &'a HashMap<Definition<'a>, usize>,
+        base: usize,
     ) -> Memory<i32, i32> {
         Memory(
             self.0
                 .into_iter()
                 .map(|(div4, word)| {
                     let word = match word {
-                        Word::Instruction(i) => Word::Instruction(tr(i, div4 * 4, defs)),
+                        Word::Instruction(i) => Word::Instruction(tr(i, base + div4 * 4, defs)),
                         Word::Value(v) => Word::Value(v),
                     };
-                    (div4, word)
+                    (base / 4 + div4, word)
                 })
                 .collect(),
         )

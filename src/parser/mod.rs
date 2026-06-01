@@ -1,6 +1,6 @@
 use crate::{
     directive::{Directive, Section},
-    processor::memory::{Memory, Sect},
+    processor::memory::Sect,
 };
 use chumsky::prelude::*;
 use real::*;
@@ -44,22 +44,10 @@ pub fn program<'src>() -> impl Parser<
     line.padded().repeated().collect::<Vec<_>>().map(|lines| {
         let mut defs = HashMap::new();
 
-        let mut text_section = Sect {
-            memory: Memory::new(),
-            pc: 0,
-        };
-        let mut data_section = Sect {
-            memory: Memory::new(),
-            pc: 0,
-        };
-        let mut rodata_section = Sect {
-            memory: Memory::new(),
-            pc: 0,
-        };
-        let mut bss_section = Sect {
-            memory: Memory::new(),
-            pc: 0,
-        };
+        let mut text_section = Sect::new(0);
+        let mut data_section = Sect::new(0);
+        let mut rodata_section = Sect::new(0);
+        let mut bss_section = Sect::new(0);
         let mut active = Section::Text;
 
         for line in lines {
