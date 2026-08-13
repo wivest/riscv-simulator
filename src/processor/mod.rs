@@ -1,6 +1,6 @@
 use memory::Memory;
 
-pub mod instructions;
+pub mod execute;
 pub mod memory;
 
 pub struct Processor {
