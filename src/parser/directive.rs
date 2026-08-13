@@ -1,4 +1,4 @@
-use crate::directive::{Directive, Section};
+use crate::directive::{Directive, SectionName};
 use crate::parser::common::*;
 
 fn org<'src>() -> impl Parser<'src, &'src str, Directive> {
@@ -35,7 +35,7 @@ fn aligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str,
     })
 }
 
-fn section<'src>(sec: Section, name: &'src str) -> impl Parser<'src, &'src str, Directive> {
+fn section<'src>(sec: SectionName, name: &'src str) -> impl Parser<'src, &'src str, Directive> {
     just(".section")
         .ignore_then(text::inline_whitespace())
         .or_not()
@@ -55,7 +55,10 @@ pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
         aligned::<2>(".short"),
         aligned::<4>(".word"),
         aligned::<8>(".dword"),
-        section(Section::Text, ".text"),
+        section(SectionName::Text, ".text"),
+        section(SectionName::Data, ".data"),
+        section(SectionName::Rodata, ".rodata"),
+        section(SectionName::Bss, ".bss"),
     ))
 }
 

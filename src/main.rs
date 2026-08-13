@@ -25,10 +25,14 @@ fn main() {
     if let Ok(content) = open_file(&path) {
         let result = parser::program().parse(&content).into_result();
         match result {
-            Ok((defs, sect)) => {
+            Ok(program) => {
                 let mut proc = Processor::new(1024);
-                let linked = sect.memory.link(linker::translate_instr, &defs, sect.base);
-                proc.memory.copy_memory(linked);
+                for sect in vec![program.text, program.data, program.rodata, program.bss] {
+                    let linked =
+                        sect.memory
+                            .link(linker::translate_instr, &program.defs, sect.base);
+                    proc.memory.copy_memory(linked);
+                }
                 proc.execute();
                 println!("{}", proc.memory);
             }

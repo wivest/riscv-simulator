@@ -1,6 +1,6 @@
 use crate::{
-    directive::{Directive, Section},
-    processor::memory::Sect,
+    directive::{Directive, SectionName},
+    processor::memory::Section,
 };
 use chumsky::prelude::*;
 use real::*;
@@ -27,35 +27,47 @@ pub enum Line<'a> {
     Directive(Directive),
 }
 
-pub fn program<'src>() -> impl Parser<
-    'src,
-    &'src str,
-    (
-        HashMap<token::Definition<'src>, usize>,
-        Sect<token::Immediate<'src>, token::Offset<'src>>,
-    ),
-> {
+pub struct Program<'src> {
+    pub defs: HashMap<token::Definition<'src>, usize>,
+    pub text: Section<token::Immediate<'src>, token::Offset<'src>>,
+    pub data: Section<token::Immediate<'src>, token::Offset<'src>>,
+    pub rodata: Section<token::Immediate<'src>, token::Offset<'src>>,
+    pub bss: Section<token::Immediate<'src>, token::Offset<'src>>,
+}
+
+impl<'src> Program<'src> {
+    fn new() -> Self {
+        Program {
+            defs: HashMap::new(),
+            text: Section::new(0),
+            data: Section::new(0),
+            rodata: Section::new(0),
+            bss: Section::new(0),
+        }
+    }
+}
+
+fn lines<'src>() -> impl Parser<'src, &'src str, Vec<Line<'src>>> {
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
     let labels = token::label_def().map(|l| Line::Label(l));
     let dirs = directive::dirs().map(|d| Line::Directive(d));
     let line = choice((real_ins, pseudo_ins, labels, dirs));
 
-    line.padded().repeated().collect::<Vec<_>>().map(|lines| {
-        let mut defs = HashMap::new();
+    line.padded().repeated().collect::<Vec<_>>()
+}
 
-        let mut text_section = Sect::new(0);
-        let mut data_section = Sect::new(0);
-        let mut rodata_section = Sect::new(0);
-        let mut bss_section = Sect::new(0);
-        let mut active = Section::Text;
+pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
+    lines().map(|lines| {
+        let mut program = Program::new();
+        let mut active = SectionName::Text;
 
         for line in lines {
             let curr = match active {
-                Section::Text => &mut text_section,
-                Section::Data => &mut data_section,
-                Section::Rodata => &mut rodata_section,
-                Section::Bss => &mut bss_section,
+                SectionName::Text => &mut program.text,
+                SectionName::Data => &mut program.data,
+                SectionName::Rodata => &mut program.rodata,
+                SectionName::Bss => &mut program.bss,
             };
 
             match line {
@@ -70,7 +82,7 @@ pub fn program<'src>() -> impl Parser<
                     }
                 }
                 Line::Label(def) => {
-                    defs.insert(def, curr.pc);
+                    program.defs.insert(def, curr.pc);
                 }
                 Line::Directive(Directive::Org(at)) => curr.pc = at,
                 Line::Directive(Directive::Unaligned(bytes)) => {
@@ -90,7 +102,7 @@ pub fn program<'src>() -> impl Parser<
             }
         }
 
-        (defs, text_section)
+        program
     })
 }
 

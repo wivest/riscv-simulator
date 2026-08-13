@@ -8,15 +8,15 @@ pub enum Word<I, O> {
 }
 
 #[derive(Debug)]
-pub struct Sect<I, O> {
+pub struct Section<I, O> {
     pub base: usize,
     pub pc: usize,
     pub memory: Memory<I, O>,
 }
 
-impl<I: Copy, O: Copy> Sect<I, O> {
+impl<I: Copy, O: Copy> Section<I, O> {
     pub fn new(base: usize) -> Self {
-        Sect {
+        Section {
             base,
             pc: 0,
             memory: Memory::new(),
