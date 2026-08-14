@@ -1,4 +1,4 @@
-use crate::{instruction::Instruction, parser::token::Definition};
+use crate::instruction::Instruction;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -8,28 +8,15 @@ pub enum Word<I, O> {
 }
 
 #[derive(Debug)]
-pub struct Section<I, O> {
-    pub base: usize,
-    pub pc: usize,
-    pub memory: Memory<I, O>,
-}
-
-impl<I: Copy, O: Copy> Section<I, O> {
-    pub fn new(base: usize) -> Self {
-        Section {
-            base,
-            pc: 0,
-            memory: Memory::new(),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct Memory<I, O>(HashMap<usize, Word<I, O>>);
 
 impl<I: Copy, O: Copy> Memory<I, O> {
     pub fn new() -> Self {
         Self(HashMap::new())
+    }
+
+    pub fn from(content: HashMap<usize, Word<I, O>>) -> Self {
+        Self(content)
     }
 
     pub fn get(&self, addr: usize) -> Option<u8> {
@@ -58,37 +45,6 @@ impl<I: Copy, O: Copy> Memory<I, O> {
             Word::Instruction(i) => Some(*i),
             Word::Value(_) => None,
         }
-    }
-
-    pub fn store_instr(&mut self, addr: usize, instr: Instruction<I, O>) {
-        self.0.insert(addr / 4, Word::Instruction(instr));
-    }
-
-    pub fn copy_memory(&mut self, other: Self) {
-        self.0.extend(other.0);
-    }
-
-    pub fn link<
-        'a,
-        F: Fn(Instruction<I, O>, usize, &'a HashMap<Definition<'a>, usize>) -> Instruction<i32, i32>,
-    >(
-        self,
-        tr: F,
-        defs: &'a HashMap<Definition<'a>, usize>,
-        base: usize,
-    ) -> Memory<i32, i32> {
-        Memory(
-            self.0
-                .into_iter()
-                .map(|(div4, word)| {
-                    let word = match word {
-                        Word::Instruction(i) => Word::Instruction(tr(i, base + div4 * 4, defs)),
-                        Word::Value(v) => Word::Value(v),
-                    };
-                    (base / 4 + div4, word)
-                })
-                .collect(),
-        )
     }
 }
 

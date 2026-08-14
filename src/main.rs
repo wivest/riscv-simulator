@@ -3,6 +3,8 @@ use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
+use crate::linker::Linker;
+
 mod directive;
 mod instruction;
 mod linker;
@@ -27,12 +29,11 @@ fn main() {
         match result {
             Ok(program) => {
                 let mut proc = Processor::new(1024);
+                let mut linker = Linker::new();
                 for sect in vec![program.text, program.data, program.rodata, program.bss] {
-                    let linked =
-                        sect.memory
-                            .link(linker::translate_instr, &program.defs, sect.base);
-                    proc.memory.copy_memory(linked);
+                    linker.import_section(sect);
                 }
+                proc.memory = linker.link(&program.defs);
                 proc.execute();
                 println!("{}", proc.memory);
             }

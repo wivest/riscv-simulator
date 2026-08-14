@@ -1,7 +1,5 @@
-use crate::{
-    directive::{Directive, SectionName},
-    processor::memory::Section,
-};
+use crate::directive::{Directive, SectionName};
+use crate::processor::memory::Word;
 use chumsky::prelude::*;
 use real::*;
 use std::collections::HashMap;
@@ -25,6 +23,41 @@ pub enum Line<'a> {
     Pseudo(Vec<Instruction<token::Immediate<'a>, token::Offset<'a>>>),
     Label(token::Definition<'a>),
     Directive(Directive),
+}
+
+#[derive(Debug)]
+pub struct Section<I, O> {
+    pub base: usize,
+    pub pc: usize,
+    pub content: HashMap<usize, Word<I, O>>,
+}
+
+impl<I: Copy, O: Copy> Section<I, O> {
+    pub fn new(base: usize) -> Self {
+        Section {
+            base,
+            pc: 0,
+            content: HashMap::new(),
+        }
+    }
+
+    pub fn set(&mut self, addr: usize, value: u8) {
+        let addr = self.base + addr;
+        let cell = self.content.get(&(addr / 4)).unwrap_or(&Word::Value(0));
+        let word = match cell {
+            Word::Instruction(_) => return, // TODO: error
+            Word::Value(v) => *v,
+        };
+        let mut bytes = word.to_ne_bytes();
+        bytes[addr % 4] = value;
+        self.content
+            .insert(addr / 4, Word::Value(u32::from_ne_bytes(bytes)));
+    }
+
+    pub fn store_instr(&mut self, addr: usize, instr: Instruction<I, O>) {
+        self.content
+            .insert(self.base + addr / 4, Word::Instruction(instr));
+    }
 }
 
 pub struct Program<'src> {
@@ -72,12 +105,12 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
 
             match line {
                 Line::Instruction(real) => {
-                    curr.memory.store_instr(curr.pc, real);
+                    curr.store_instr(curr.pc, real);
                     curr.pc += 4;
                 }
                 Line::Pseudo(pseudo) => {
                     for i in pseudo {
-                        curr.memory.store_instr(curr.pc, i);
+                        curr.store_instr(curr.pc, i);
                         curr.pc += 4;
                     }
                 }
@@ -87,14 +120,14 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
                 Line::Directive(Directive::Org(at)) => curr.pc = at,
                 Line::Directive(Directive::Unaligned(bytes)) => {
                     for b in bytes {
-                        curr.memory.set(curr.pc, b);
+                        curr.set(curr.pc, b);
                         curr.pc += 1;
                     }
                 }
                 Line::Directive(Directive::Aligned(size, bytes)) => {
                     curr.pc = curr.pc.next_multiple_of(size);
                     for b in bytes {
-                        curr.memory.set(curr.pc, b);
+                        curr.set(curr.pc, b);
                         curr.pc += 1;
                     }
                 }

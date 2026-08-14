@@ -1,6 +1,37 @@
 use crate::instruction::Instruction::{self, *};
+use crate::parser::Section;
 use crate::parser::token::{Definition, Immediate, Offset, Reference};
+use crate::processor::memory::{Memory, Word};
 use std::collections::HashMap;
+
+pub struct Linker<'a>(HashMap<usize, Word<Immediate<'a>, Offset<'a>>>);
+
+impl<'a> Linker<'a> {
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
+    pub fn import_section(&mut self, sect: Section<Immediate<'a>, Offset<'a>>) {
+        self.0.extend(sect.content);
+    }
+
+    pub fn link(self, defs: &'a HashMap<Definition<'a>, usize>) -> Memory<i32, i32> {
+        Memory::from(
+            self.0
+                .into_iter()
+                .map(|(div4, word)| {
+                    let word = match word {
+                        Word::Instruction(i) => {
+                            Word::Instruction(translate_instr(i, div4 * 4, defs))
+                        }
+                        Word::Value(v) => Word::Value(v),
+                    };
+                    (div4, word)
+                })
+                .collect(),
+        )
+    }
+}
 
 pub fn translate_instr(
     instr: Instruction<Immediate, Offset>,
