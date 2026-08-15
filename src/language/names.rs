@@ -2,14 +2,31 @@
 pub enum BType {
     Beq,
     Bne,
+    Blt,
+    Bltu,
+    Bge,
+    Bgeu,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IType {
+    // arithmetic
     Addi,
-    Lb,
-    Lh,
+    // bitwise logic
+    Andi,
+    Ori,
+    Xori,
+    // shift
+    Slli,
+    Srli,
+    Srai,
+    // load
     Lw,
+    Lh,
+    Lhu,
+    Lb,
+    Lbu,
+    // jump
     Jalr,
 }
 
@@ -20,21 +37,30 @@ pub enum JType {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RType {
+    // arithmetic
     Add,
     Sub,
     Mul,
+    Mulh,
+    Mulhu,
+    Mulhsu,
     Div,
     Rem,
+    // bitwise logic
     And,
     Or,
     Xor,
+    // shift
+    Sll,
+    Srl,
+    Sra,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SType {
-    Sb,
-    Sh,
     Sw,
+    Sh,
+    Sb,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
