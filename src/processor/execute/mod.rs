@@ -1,6 +1,6 @@
 use super::Processor;
-use crate::instruction::Instruction;
-use crate::names::*;
+use crate::language::instruction::Instruction;
+use crate::language::names::*;
 
 mod btype;
 mod itype;

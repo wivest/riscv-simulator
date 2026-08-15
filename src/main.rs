@@ -5,10 +5,14 @@ use std::io::{Error, Read};
 
 use crate::linker::Linker;
 
-mod directive;
-mod instruction;
+mod language {
+    pub mod directive;
+    pub mod instruction;
+    pub mod names;
+    pub mod token;
+    pub mod word;
+}
 mod linker;
-mod names;
 mod parser;
 mod processor;
 

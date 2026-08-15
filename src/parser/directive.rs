@@ -1,5 +1,6 @@
-use crate::directive::{Directive, SectionName};
-use crate::parser::common::*;
+use super::common::*;
+
+use crate::language::directive::{Directive, SectionName};
 
 fn org<'src>() -> impl Parser<'src, &'src str, Directive> {
     just(".org")

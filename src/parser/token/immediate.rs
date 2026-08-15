@@ -1,26 +1,16 @@
-use super::label::{Reference, label_ref};
+use super::label_ref;
+
+use crate::language::token::{Immediate, Offset};
 use crate::parser::common::*;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Offset<'a> {
-    Value(i32),
-    Label(Reference<'a>),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Immediate<'a> {
-    Value(i32),
-    Upper(Reference<'a>),
-    Lower(Reference<'a>),
-}
 
 pub fn immediate12<'src>() -> impl Parser<'src, &'src str, Immediate<'src>> {
     let imm = number(12, i32::from_le_bytes).map(|imm| Immediate::Value(imm));
-    let lower = just("%lo(")
+    let inline = just("%lo(")
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label))
         .inline();
+    let lower = inline;
 
     choice((imm, lower))
 }

@@ -1,11 +1,6 @@
-use crate::instruction::Instruction;
-use std::collections::HashMap;
+use crate::language::{instruction::Instruction, word::Word};
 
-#[derive(Debug)]
-pub enum Word<I, O> {
-    Instruction(Instruction<I, O>),
-    Value(u32),
-}
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Memory<I, O>(HashMap<usize, Word<I, O>>);

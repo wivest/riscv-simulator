@@ -1,5 +1,10 @@
-use crate::directive::{Directive, SectionName};
-use crate::processor::memory::Word;
+use crate::language::{
+    directive::{Directive, SectionName},
+    instruction::*,
+    token::{Definition, Immediate, Offset},
+    word::Word,
+};
+
 use chumsky::prelude::*;
 use real::*;
 use std::collections::HashMap;
@@ -19,9 +24,9 @@ mod pseudo;
 pub mod real;
 
 pub enum Line<'a> {
-    Instruction(Instruction<token::Immediate<'a>, token::Offset<'a>>),
-    Pseudo(Vec<Instruction<token::Immediate<'a>, token::Offset<'a>>>),
-    Label(token::Definition<'a>),
+    Instruction(Instruction<Immediate<'a>, Offset<'a>>),
+    Pseudo(Vec<Instruction<Immediate<'a>, Offset<'a>>>),
+    Label(Definition<'a>),
     Directive(Directive),
 }
 
@@ -61,11 +66,11 @@ impl<I: Copy, O: Copy> Section<I, O> {
 }
 
 pub struct Program<'src> {
-    pub defs: HashMap<token::Definition<'src>, usize>,
-    pub text: Section<token::Immediate<'src>, token::Offset<'src>>,
-    pub data: Section<token::Immediate<'src>, token::Offset<'src>>,
-    pub rodata: Section<token::Immediate<'src>, token::Offset<'src>>,
-    pub bss: Section<token::Immediate<'src>, token::Offset<'src>>,
+    pub defs: HashMap<Definition<'src>, usize>,
+    pub text: Section<Immediate<'src>, Offset<'src>>,
+    pub data: Section<Immediate<'src>, Offset<'src>>,
+    pub rodata: Section<Immediate<'src>, Offset<'src>>,
+    pub bss: Section<Immediate<'src>, Offset<'src>>,
 }
 
 impl<'src> Program<'src> {
@@ -140,7 +145,7 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
 }
 
 fn btype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let beq = btype(BType::Beq, just("beq"));
     let bne = btype(BType::Bne, just("bne"));
 
@@ -148,7 +153,7 @@ fn btype_instructions<'src>()
 }
 
 fn itype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let addi = itype(IType::Addi, just("addi"));
     let jalr = itype(IType::Jalr, just("jalr"));
     let lb = itype_load(IType::Lb, just("lb"));
@@ -159,14 +164,14 @@ fn itype_instructions<'src>()
 }
 
 fn jtype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let jal = jtype(JType::Jal, just("jal"));
 
     choice((jal,))
 }
 
 fn rtype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let add = rtype(RType::Add, just("add"));
     let sub = rtype(RType::Sub, just("sub"));
     let mul = rtype(RType::Mul, just("mul"));
@@ -180,7 +185,7 @@ fn rtype_instructions<'src>()
 }
 
 fn stype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let sb = stype(SType::Sb, just("sb"));
     let sh = stype(SType::Sh, just("sh"));
     let sw = stype(SType::Sw, just("sw"));
@@ -189,7 +194,7 @@ fn stype_instructions<'src>()
 }
 
 fn utype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let lui = utype(UType::Lui, just("lui"));
     let auipc = utype(UType::Auipc, just("auipc"));
 
@@ -197,7 +202,7 @@ fn utype_instructions<'src>()
 }
 
 fn real_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<token::Immediate<'src>, token::Offset<'src>>> {
+-> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
     let rtype_ins = rtype_instructions();
     let itype_ins = itype_instructions();
     let btype_ins = btype_instructions();

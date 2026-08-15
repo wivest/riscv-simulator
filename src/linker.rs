@@ -1,7 +1,11 @@
-use crate::instruction::Instruction::{self, *};
+use crate::language::{
+    instruction::Instruction::{self, *},
+    token::{Definition, Immediate, Offset, Reference},
+    word::Word,
+};
+
 use crate::parser::Section;
-use crate::parser::token::{Definition, Immediate, Offset, Reference};
-use crate::processor::memory::{Memory, Word};
+use crate::processor::memory::Memory;
 use std::collections::HashMap;
 
 pub struct Linker<'a>(HashMap<usize, Word<Immediate<'a>, Offset<'a>>>);

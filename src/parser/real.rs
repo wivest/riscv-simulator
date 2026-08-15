@@ -1,6 +1,8 @@
-use super::token::{Immediate, Offset, immediate12, immediate20, offset, register};
-pub use crate::instruction::*;
-use crate::parser::common::*;
+use super::common::*;
+use super::token::{immediate12, immediate20, offset, register};
+
+use crate::language::instruction::*;
+use crate::language::token::{Immediate, Offset};
 
 pub fn btype<'src>(
     name: BType,

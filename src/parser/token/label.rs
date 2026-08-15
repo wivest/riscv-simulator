@@ -1,9 +1,6 @@
-use crate::parser::common::*;
+use crate::language::token::{Definition, Reference};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Reference<'a>(pub &'a str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Definition<'a>(pub &'a str);
+use crate::parser::common::*;
 
 pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Reference<'src>> {
     text::ascii::ident()

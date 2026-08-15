@@ -1,6 +1,10 @@
-use super::token::{Immediate, Offset, label_ref, register};
-use crate::instruction::*;
-use crate::parser::common::*;
+use super::common::*;
+use super::token::{label_ref, register};
+
+use crate::language::{
+    instruction::*,
+    token::{Immediate, Offset},
+};
 
 pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("li")

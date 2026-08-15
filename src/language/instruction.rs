@@ -1,4 +1,4 @@
-pub use crate::names::*;
+pub use super::names::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Instruction<I, O> {
