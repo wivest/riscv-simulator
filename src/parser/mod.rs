@@ -144,75 +144,38 @@ pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
     })
 }
 
-fn btype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let beq = btype(BType::Beq, just("beq"));
-    let bne = btype(BType::Bne, just("bne"));
-
-    choice((beq, bne))
-}
-
-fn itype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let addi = itype(IType::Addi, just("addi"));
-    let jalr = itype(IType::Jalr, just("jalr"));
-    let lb = itype_load(IType::Lb, just("lb"));
-    let lh = itype_load(IType::Lh, just("lh"));
-    let lw = itype_load(IType::Lw, just("lw"));
-
-    choice((addi, jalr, lb, lh, lw))
-}
-
-fn jtype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let jal = jtype(JType::Jal, just("jal"));
-
-    choice((jal,))
-}
-
-fn rtype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let add = rtype(RType::Add, just("add"));
-    let sub = rtype(RType::Sub, just("sub"));
-    let mul = rtype(RType::Mul, just("mul"));
-    let div = rtype(RType::Div, just("div"));
-    let rem = rtype(RType::Rem, just("rem"));
-    let and = rtype(RType::And, just("and"));
-    let or = rtype(RType::Or, just("or"));
-    let xor = rtype(RType::Xor, just("xor"));
-
-    choice((add, sub, mul, div, rem, and, or, xor))
-}
-
-fn stype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let sb = stype(SType::Sb, just("sb"));
-    let sh = stype(SType::Sh, just("sh"));
-    let sw = stype(SType::Sw, just("sw"));
-
-    choice((sb, sh, sw))
-}
-
-fn utype_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let lui = utype(UType::Lui, just("lui"));
-    let auipc = utype(UType::Auipc, just("auipc"));
-
-    choice((lui, auipc))
+macro_rules! instructions {
+    ($func:expr, $en:ident, [ $($var:ident),+ $(,)?]) => {
+        choice(($({
+            let name: &'static str = stringify!($var).to_lowercase().leak();
+            $func($en::$var, just(name))
+        },)+)).boxed()
+    };
 }
 
 fn real_instructions<'src>()
 -> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
-    let rtype_ins = rtype_instructions();
-    let itype_ins = itype_instructions();
-    let btype_ins = btype_instructions();
-    let stype_ins = stype_instructions();
-    let jtype_ins = jtype_instructions();
-    let utype_ins = utype_instructions();
+    let btype_ins = instructions!(btype, BType, [Beq, Bne, Blt, Bltu, Bge, Bgeu]);
+    let itype_ins = instructions!(
+        itype,
+        IType,
+        [Addi, Andi, Ori, Xori, Slli, Srli, Srai, Jalr]
+    );
+    let iltype_ins = instructions!(itype_load, IType, [Lw, Lh, Lhu, Lb, Lbu]);
+    let jtype_ins = instructions!(jtype, JType, [Jal]);
+    let rtype_ins = instructions!(
+        rtype,
+        RType,
+        [
+            Add, Sub, Mul, Mulh, Mulhu, Mulhsu, Div, Rem, And, Or, Xor, Sll, Srl, Sra,
+        ]
+    );
+    let stype_ins = instructions!(stype, SType, [Sw, Sh, Sb]);
+    let utype_ins = instructions!(utype, UType, [Lui, Auipc]);
     let system_ins = system();
 
     choice((
-        rtype_ins, itype_ins, btype_ins, stype_ins, jtype_ins, utype_ins, system_ins,
+        btype_ins, itype_ins, iltype_ins, jtype_ins, rtype_ins, stype_ins, utype_ins, system_ins,
     ))
 }
 
@@ -222,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_rtype() {
-        let result = rtype_instructions().parse("add x0, x1, x2");
+        let result = real_instructions().parse("add x0, x1, x2");
         assert_eq!(
             result.unwrap(),
             Instruction::RType {
@@ -232,7 +195,7 @@ mod tests {
                 rs2: 2
             }
         );
-        let result = rtype_instructions().parse("add x0,\nx1, x2");
+        let result = real_instructions().parse("add x0,\nx1, x2");
         assert_eq!(result.has_errors(), true);
     }
 }
