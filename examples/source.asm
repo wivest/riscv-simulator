@@ -1,3 +1,5 @@
+.org 1024
+
 addi x2, x0, 42
 addi x3, x0, 100
 add x1, x2, x3

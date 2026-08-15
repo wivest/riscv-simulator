@@ -61,7 +61,7 @@ impl<I: Copy, O: Copy> Section<I, O> {
 
     pub fn store_instr(&mut self, addr: usize, instr: Instruction<I, O>) {
         self.content
-            .insert(self.base + addr / 4, Word::Instruction(instr));
+            .insert((self.base + addr) / 4, Word::Instruction(instr));
     }
 }
 
