@@ -1,6 +1,6 @@
 use crate::parser::common::*;
 
-pub fn register<'src>() -> impl Parser<'src, &'src str, usize> {
+pub fn register<'src>() -> impl StrParser<'src, usize> {
     let index = just("x").ignore_then(digits(10)).filter(|n| *n <= 31);
 
     let zero = just("zero").map(|_| 0);

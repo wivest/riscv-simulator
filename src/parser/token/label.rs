@@ -2,13 +2,13 @@ use crate::language::token::{Definition, Reference};
 
 use crate::parser::common::*;
 
-pub fn label_ref<'src>() -> impl Parser<'src, &'src str, Reference<'src>> {
+pub fn label_ref<'src>() -> impl StrParser<'src, Reference<'src>> {
     text::ascii::ident()
         .inline()
         .map(|label: &str| Reference(label))
 }
 
-pub fn label_def<'src>() -> impl Parser<'src, &'src str, Definition<'src>> {
+pub fn label_def<'src>() -> impl StrParser<'src, Definition<'src>> {
     text::ascii::ident()
         .inline()
         .then_ignore(just(":"))

@@ -23,6 +23,9 @@ pub mod token {
 mod pseudo;
 pub mod real;
 
+pub trait StrParser<'src, O>: Parser<'src, &'src str, O> {}
+impl<'src, O, P> StrParser<'src, O> for P where P: Parser<'src, &'src str, O> {}
+
 pub enum Line<'a> {
     Instruction(Instruction<Immediate<'a>, Offset<'a>>),
     Pseudo(Vec<Instruction<Immediate<'a>, Offset<'a>>>),
@@ -85,7 +88,7 @@ impl<'src> Program<'src> {
     }
 }
 
-fn lines<'src>() -> impl Parser<'src, &'src str, Vec<Line<'src>>> {
+fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
     let labels = token::label_def().map(|l| Line::Label(l));
@@ -95,7 +98,7 @@ fn lines<'src>() -> impl Parser<'src, &'src str, Vec<Line<'src>>> {
     line.padded().repeated().collect::<Vec<_>>()
 }
 
-pub fn program<'src>() -> impl Parser<'src, &'src str, Program<'src>> {
+pub fn program<'src>() -> impl StrParser<'src, Program<'src>> {
     lines().map(|lines| {
         let mut program = Program::new();
         let mut active = SectionName::Text;
@@ -153,8 +156,7 @@ macro_rules! instructions {
     };
 }
 
-fn real_instructions<'src>()
--> impl Parser<'src, &'src str, Instruction<Immediate<'src>, Offset<'src>>> {
+fn real_instructions<'src>() -> impl StrParser<'src, Instruction<Immediate<'src>, Offset<'src>>> {
     let btype_ins = instructions!(btype, BType, [Beq, Bne, Blt, Bltu, Bge, Bgeu]);
     let itype_ins = instructions!(
         itype,

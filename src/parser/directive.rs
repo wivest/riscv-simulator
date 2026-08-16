@@ -2,13 +2,13 @@ use super::common::*;
 
 use crate::language::directive::{Directive, SectionName};
 
-fn org<'src>() -> impl Parser<'src, &'src str, Directive> {
+fn org<'src>() -> impl StrParser<'src, Directive> {
     just(".org")
         .ignore_then(number(32, usize::from_le_bytes))
         .map(|at: usize| Directive::Org(at))
 }
 
-fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
+fn asciz<'src>() -> impl StrParser<'src, Directive> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
         .then_ignore(just('"'));
@@ -18,7 +18,7 @@ fn asciz<'src>() -> impl Parser<'src, &'src str, Directive> {
         .map(|s: String| Directive::Unaligned(s.bytes().chain(std::iter::once(0)).collect()))
 }
 
-fn unaligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str, Directive> {
+fn unaligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive> {
     let list = number_le_bytes(B as u32 * 8)
         .separated_by(just(','))
         .collect();
@@ -27,7 +27,7 @@ fn unaligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src st
     })
 }
 
-fn aligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str, Directive> {
+fn aligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive> {
     let list = number_le_bytes(B as u32 * 8)
         .separated_by(just(','))
         .collect();
@@ -36,7 +36,7 @@ fn aligned<'src, const B: usize>(dir: &'src str) -> impl Parser<'src, &'src str,
     })
 }
 
-fn section<'src>(sec: SectionName, name: &'src str) -> impl Parser<'src, &'src str, Directive> {
+fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Directive> {
     just(".section")
         .ignore_then(text::inline_whitespace())
         .or_not()
@@ -44,7 +44,7 @@ fn section<'src>(sec: SectionName, name: &'src str) -> impl Parser<'src, &'src s
         .map(move |_| Directive::Section(sec))
 }
 
-pub fn dirs<'src>() -> impl Parser<'src, &'src str, Directive> {
+pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
     choice((
         org(),
         asciz(),

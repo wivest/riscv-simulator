@@ -1,10 +1,11 @@
+pub use super::StrParser;
 pub use chumsky::prelude::*;
 
-pub fn digits<'src>(radix: u32) -> impl Parser<'src, &'src str, u64> {
+pub fn digits<'src>(radix: u32) -> impl StrParser<'src, u64> {
     text::int(radix).map(move |s: &'src str| u64::from_str_radix(s, radix).unwrap())
 }
 
-fn char<'src>() -> impl Parser<'src, &'src str, i64> {
+fn char<'src>() -> impl StrParser<'src, i64> {
     just('\'')
         .ignore_then(none_of('\''))
         .then_ignore(just('\''))
@@ -12,14 +13,14 @@ fn char<'src>() -> impl Parser<'src, &'src str, i64> {
         .map(|c| c as i64)
 }
 
-fn number_radix<'src>(radix: u32, bits: u32) -> impl Parser<'src, &'src str, i64> {
+fn number_radix<'src>(radix: u32, bits: u32) -> impl StrParser<'src, i64> {
     digits(radix)
         .filter(move |n| 0u64.leading_zeros() - n.leading_zeros() <= bits)
         .map(|n| n as i64)
         .inline()
 }
 
-pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl Parser<'src, &'src str, [u8; N]> {
+pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl StrParser<'src, [u8; N]> {
     let neg = just('-')
         .ignore_then(text::inline_whitespace())
         .ignore_then(number_radix(10, bits - 1))
@@ -39,33 +40,27 @@ pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl Parser<'src, &'s
 pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
     bits: u32,
     from_le_bytes: F,
-) -> impl Parser<'src, &'src str, O> {
+) -> impl StrParser<'src, O> {
     number_le_bytes(bits).map(move |bytes| from_le_bytes(bytes))
 }
 
-pub trait Extended<'src, O>: Parser<'src, &'src str, O> + Sized {
-    fn inline(self) -> impl Parser<'src, &'src str, O> {
+pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
+    fn inline(self) -> impl StrParser<'src, O> {
         self.padded_by(text::inline_whitespace().then(comment().or_not()))
     }
 
-    fn then_arg<OA, A: Parser<'src, &'src str, OA>>(
-        self,
-        arg: A,
-    ) -> impl Parser<'src, &'src str, (O, OA)> {
+    fn then_arg<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
         self.then_ignore(just(',')).then(arg)
     }
 
-    fn index<OA, A: Parser<'src, &'src str, OA>>(
-        self,
-        arg: A,
-    ) -> impl Parser<'src, &'src str, (O, OA)> {
+    fn index<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
         self.then_ignore(just('(')).then(arg).then_ignore(just(')'))
     }
 }
 
-impl<'src, O, P> Extended<'src, O> for P where P: Parser<'src, &'src str, O> {}
+impl<'src, O, P> Extended<'src, O> for P where P: StrParser<'src, O> {}
 
-fn comment<'src>() -> impl Parser<'src, &'src str, ()> {
+fn comment<'src>() -> impl StrParser<'src, ()> {
     let content = text::newline()
         .not()
         .ignore_then(any())

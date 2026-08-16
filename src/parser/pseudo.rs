@@ -7,7 +7,7 @@ use crate::language::{
 };
 
 // arithmetic
-pub fn neg<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("neg")
         .ignore_then(register())
@@ -23,7 +23,7 @@ pub fn neg<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'sr
 }
 
 // bitwise logic
-pub fn not<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("not")
         .ignore_then(register())
@@ -39,7 +39,7 @@ pub fn not<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'sr
 }
 
 // load
-pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("li")
         .ignore_then(register())
         .then_ignore(just(","))
@@ -61,7 +61,7 @@ pub fn li<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src
         })
 }
 
-pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+pub fn la<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("la")
         .ignore_then(register())
         .then_ignore(just(","))
@@ -84,7 +84,7 @@ pub fn la<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src
 }
 
 // jump
-pub fn j<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+pub fn j<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("j").ignore_then(offset(20)).map(|imm| {
         vec![Instruction::JType {
             name: JType::Jal,
@@ -94,7 +94,7 @@ pub fn j<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>
     })
 }
 
-pub fn call<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("call").ignore_then(label_ref()).map(|label| {
         vec![
@@ -113,7 +113,7 @@ pub fn call<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
     })
 }
 
-pub fn tail<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("call").ignore_then(label_ref()).map(|label| {
         vec![
@@ -132,7 +132,7 @@ pub fn tail<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
     })
 }
 
-pub fn ret<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn ret<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("ret").to(vec![Instruction::IType {
         name: IType::Jalr,
@@ -143,7 +143,7 @@ pub fn ret<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'sr
 }
 
 // branch
-pub fn beqz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("beqz")
         .ignore_then(register())
@@ -158,7 +158,7 @@ pub fn beqz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn bnez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bnez")
         .ignore_then(register())
@@ -173,7 +173,7 @@ pub fn bnez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn bltz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bltz")
         .ignore_then(register())
@@ -188,7 +188,7 @@ pub fn bltz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn bgt<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bgt")
         .ignore_then(register())
@@ -204,7 +204,7 @@ pub fn bgt<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'sr
         })
 }
 
-pub fn bgtu<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bgtu")
         .ignore_then(register())
@@ -220,7 +220,7 @@ pub fn bgtu<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn bgtz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bgtz")
         .ignore_then(register())
@@ -235,7 +235,7 @@ pub fn bgtz<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn ble<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("ble")
         .ignore_then(register())
@@ -251,7 +251,7 @@ pub fn ble<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'sr
         })
 }
 
-pub fn bleu<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("bleu")
         .ignore_then(register())
@@ -267,7 +267,7 @@ pub fn bleu<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn blez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("blez")
         .ignore_then(register())
@@ -282,7 +282,7 @@ pub fn blez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
         })
 }
 
-pub fn bgez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
+pub fn bgez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
 {
     just("beqz")
         .ignore_then(register())
@@ -298,7 +298,7 @@ pub fn bgez<'src>() -> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'s
 }
 
 pub fn pseudo_instructions<'src>()
--> impl Parser<'src, &'src str, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+-> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     choice((
         neg(),
         not(),
