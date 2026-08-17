@@ -6,11 +6,26 @@ use crate::language::{
     token::{Immediate, Offset},
 };
 
+pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+    just("mv")
+        .ignore_then(register())
+        .then_ignore(just(","))
+        .then(register())
+        .map(|(rd, rs)| {
+            vec![Instruction::IType {
+                name: IType::Addi,
+                rd,
+                rs,
+                imm: Immediate::Value(0),
+            }]
+        })
+}
+
 // arithmetic
-pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("neg")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
         .map(|(rd, rs2)| {
             vec![Instruction::RType {
@@ -23,10 +38,10 @@ pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 }
 
 // bitwise logic
-pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("not")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
         .map(|(rd, rs)| {
             vec![Instruction::IType {
@@ -94,8 +109,7 @@ pub fn j<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset
     })
 }
 
-pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("call").ignore_then(label_ref()).map(|label| {
         vec![
             Instruction::UType {
@@ -113,8 +127,7 @@ pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
     })
 }
 
-pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("call").ignore_then(label_ref()).map(|label| {
         vec![
             Instruction::UType {
@@ -132,8 +145,7 @@ pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
     })
 }
 
-pub fn ret<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn ret<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("ret").to(vec![Instruction::IType {
         name: IType::Jalr,
         rd: 0,
@@ -143,10 +155,10 @@ pub fn ret<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 }
 
 // branch
-pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("beqz")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
@@ -158,10 +170,10 @@ pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bnez")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
@@ -173,10 +185,10 @@ pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bltz")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
@@ -188,11 +200,12 @@ pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgt")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
@@ -204,11 +217,12 @@ pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
         })
 }
 
-pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgtu")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
@@ -220,10 +234,10 @@ pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgtz")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs2, offset)| {
             vec![Instruction::BType {
@@ -235,11 +249,12 @@ pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("ble")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
@@ -251,11 +266,12 @@ pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
         })
 }
 
-pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bleu")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
@@ -267,10 +283,10 @@ pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("blez")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs2, offset)| {
             vec![Instruction::BType {
@@ -282,10 +298,10 @@ pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
         })
 }
 
-pub fn bgez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>>
-{
+pub fn bgez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("beqz")
         .ignore_then(register())
+        .then_ignore(just(","))
         .then(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
@@ -300,6 +316,7 @@ pub fn bgez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 pub fn pseudo_instructions<'src>()
 -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     choice((
+        mv(),
         neg(),
         not(),
         li(),
@@ -319,4 +336,5 @@ pub fn pseudo_instructions<'src>()
         blez(),
         bgez(),
     ))
+    .boxed()
 }
