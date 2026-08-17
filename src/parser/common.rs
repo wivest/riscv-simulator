@@ -41,12 +41,14 @@ pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
     bits: u32,
     from_le_bytes: F,
 ) -> impl StrParser<'src, O> {
-    number_le_bytes(bits).map(move |bytes| from_le_bytes(bytes))
+    number_le_bytes(bits)
+        .map(move |bytes| from_le_bytes(bytes))
+        .map_err(move |e| Rich::custom(*e.span(), format!("expected number of {} bits", bits)))
 }
 
 pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
     fn inline(self) -> impl StrParser<'src, O> {
-        self.padded_by(text::inline_whitespace().then(comment().or_not()))
+        self.padded_by(text::inline_whitespace())
     }
 
     fn then_arg<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
@@ -66,7 +68,9 @@ pub fn comment<'src>() -> impl StrParser<'src, ()> {
         .ignore_then(any())
         .repeated()
         .ignored();
-    choice((just("#"), just("//"))).ignore_then(content)
+    choice((just("#"), just("//")))
+        .ignore_then(content)
+        .map_err(|e: Rich<'_, char>| Rich::custom(*e.span(), "expected comment"))
 }
 
 #[cfg(test)]

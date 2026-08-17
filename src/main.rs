@@ -44,15 +44,15 @@ fn main() {
             }
             Err(errors) => {
                 for err in errors {
-                    Report::build(ReportKind::Error, err.span().into_range())
+                    Report::build(ReportKind::Error, (&path, err.span().into_range()))
                         .with_message(err.to_string())
                         .with_label(
-                            Label::new(err.span().into_range())
+                            Label::new((&path, err.span().into_range()))
                                 .with_message(format!("{}", err.reason()))
                                 .with_color(Color::Red),
                         )
                         .finish()
-                        .print(Source::from(&content))
+                        .print((&path, Source::from(&content)))
                         .unwrap();
                 }
             }

@@ -28,6 +28,7 @@ pub fn register<'src>() -> impl StrParser<'src, usize> {
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
         .map(|n| n as usize)
         .inline()
+        .map_err(|e| Rich::custom(*e.span(), "expected register"))
 }
 
 #[cfg(test)]

@@ -1,3 +1,5 @@
+use chumsky::error::RichReason;
+
 use crate::language::token::{Definition, Reference};
 
 use crate::parser::common::*;
@@ -6,14 +8,26 @@ pub fn label_ref<'src>() -> impl StrParser<'src, Reference<'src>> {
     text::ascii::ident()
         .inline()
         .map(|label: &str| Reference(label))
+        .map_err(|e| {
+            Rich::custom(
+                *e.span(),
+                format!("expected symbol, found {}", e.found().unwrap_or(&'_')),
+            )
+        })
 }
 
 pub fn label_def<'src>() -> impl StrParser<'src, Definition<'src>> {
     text::ascii::ident()
         .inline()
-        .then_ignore(just(":"))
+        .then_ignore(just(":").map_err(|e: Rich<'_, char>| {
+            Rich::custom(*e.span(), "expected ':' after label definition")
+        }))
         .inline()
         .map(|label: &str| Definition(label))
+        .map_err(|e| match *e.reason() {
+            RichReason::Custom(_) => e,
+            _ => Rich::custom(*e.span(), "expected label definition"),
+        })
 }
 
 #[cfg(test)]

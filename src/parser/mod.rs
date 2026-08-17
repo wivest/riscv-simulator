@@ -98,7 +98,10 @@ fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
     let comments = common::comment().map(|_| Line::Empty);
     let line = choice((real_ins, pseudo_ins, labels, dirs, comments));
 
-    line.padded().repeated().collect::<Vec<_>>()
+    line.padded()
+        .recover_with(skip_then_retry_until(any().ignored(), just('\n').ignored()))
+        .repeated()
+        .collect::<Vec<_>>()
 }
 
 pub fn program<'src>() -> impl StrParser<'src, Program<'src>> {
