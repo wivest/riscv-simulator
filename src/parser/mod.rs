@@ -23,14 +23,16 @@ pub mod token {
 mod pseudo;
 pub mod real;
 
-pub trait StrParser<'src, O>: Parser<'src, &'src str, O> {}
-impl<'src, O, P> StrParser<'src, O> for P where P: Parser<'src, &'src str, O> {}
+type E<'src> = extra::Err<Rich<'src, char>>;
+pub trait StrParser<'src, O>: Parser<'src, &'src str, O, E<'src>> {}
+impl<'src, O, P> StrParser<'src, O> for P where P: Parser<'src, &'src str, O, E<'src>> {}
 
 pub enum Line<'a> {
     Instruction(Instruction<Immediate<'a>, Offset<'a>>),
     Pseudo(Vec<Instruction<Immediate<'a>, Offset<'a>>>),
     Label(Definition<'a>),
     Directive(Directive),
+    Empty,
 }
 
 #[derive(Debug)]
@@ -93,7 +95,8 @@ fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
     let labels = token::label_def().map(|l| Line::Label(l));
     let dirs = directive::dirs().map(|d| Line::Directive(d));
-    let line = choice((real_ins, pseudo_ins, labels, dirs));
+    let comments = common::comment().map(|_| Line::Empty);
+    let line = choice((real_ins, pseudo_ins, labels, dirs, comments));
 
     line.padded().repeated().collect::<Vec<_>>()
 }
@@ -140,6 +143,7 @@ pub fn program<'src>() -> impl StrParser<'src, Program<'src>> {
                     }
                 }
                 Line::Directive(Directive::Section(section)) => active = section,
+                Line::Empty => {}
             }
         }
 

@@ -1,3 +1,4 @@
+use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::Parser;
 use processor::Processor;
 use std::fs::OpenOptions;
@@ -41,7 +42,20 @@ fn main() {
                 proc.execute();
                 println!("{}", proc.memory);
             }
-            Err(err) => println!("{err:?}"),
+            Err(errors) => {
+                for err in errors {
+                    Report::build(ReportKind::Error, err.span().into_range())
+                        .with_message(err.to_string())
+                        .with_label(
+                            Label::new(err.span().into_range())
+                                .with_message(format!("{}", err.reason()))
+                                .with_color(Color::Red),
+                        )
+                        .finish()
+                        .print(Source::from(&content))
+                        .unwrap();
+                }
+            }
         }
     } else {
         println!("File error!");

@@ -60,7 +60,7 @@ pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
 
 impl<'src, O, P> Extended<'src, O> for P where P: StrParser<'src, O> {}
 
-fn comment<'src>() -> impl StrParser<'src, ()> {
+pub fn comment<'src>() -> impl StrParser<'src, ()> {
     let content = text::newline()
         .not()
         .ignore_then(any())
