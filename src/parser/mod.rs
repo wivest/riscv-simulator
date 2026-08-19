@@ -2,15 +2,15 @@ use crate::language::{
     directive::{Directive, SectionName},
     instruction::*,
     token::{Definition, Immediate, Offset},
-    word::Word,
 };
 
 use chumsky::prelude::*;
 use real::*;
-use std::collections::HashMap;
+use section::Section;
 
 mod common;
 mod directive;
+pub mod section;
 pub mod token {
     pub use immediate::*;
     pub use label::*;
@@ -35,57 +35,20 @@ pub enum Line<'a> {
     Empty,
 }
 
-#[derive(Debug)]
-pub struct Section<I, O> {
-    pub base: usize,
-    pub pc: usize,
-    pub content: HashMap<usize, Word<I, O>>,
-}
-
-impl<I: Copy, O: Copy> Section<I, O> {
-    pub fn new(base: usize) -> Self {
-        Section {
-            base,
-            pc: 0,
-            content: HashMap::new(),
-        }
-    }
-
-    pub fn set(&mut self, addr: usize, value: u8) {
-        let addr = self.base + addr;
-        let cell = self.content.get(&(addr / 4)).unwrap_or(&Word::Value(0));
-        let word = match cell {
-            Word::Instruction(_) => return, // TODO: error
-            Word::Value(v) => *v,
-        };
-        let mut bytes = word.to_ne_bytes();
-        bytes[addr % 4] = value;
-        self.content
-            .insert(addr / 4, Word::Value(u32::from_ne_bytes(bytes)));
-    }
-
-    pub fn store_instr(&mut self, addr: usize, instr: Instruction<I, O>) {
-        self.content
-            .insert((self.base + addr) / 4, Word::Instruction(instr));
-    }
-}
-
 pub struct Program<'src> {
-    pub defs: HashMap<Definition<'src>, usize>,
-    pub text: Section<Immediate<'src>, Offset<'src>>,
-    pub data: Section<Immediate<'src>, Offset<'src>>,
-    pub rodata: Section<Immediate<'src>, Offset<'src>>,
-    pub bss: Section<Immediate<'src>, Offset<'src>>,
+    pub text: Section<'src, Immediate<'src>, Offset<'src>>,
+    pub data: Section<'src, Immediate<'src>, Offset<'src>>,
+    pub rodata: Section<'src, Immediate<'src>, Offset<'src>>,
+    pub bss: Section<'src, Immediate<'src>, Offset<'src>>,
 }
 
 impl<'src> Program<'src> {
     fn new() -> Self {
         Program {
-            defs: HashMap::new(),
-            text: Section::new(0),
-            data: Section::new(0),
-            rodata: Section::new(0),
-            bss: Section::new(0),
+            text: Section::new(0, 0),
+            data: Section::new(0, 0),
+            rodata: Section::new(0, 0),
+            bss: Section::new(0, 0),
         }
     }
 }
@@ -129,7 +92,7 @@ pub fn program<'src>() -> impl StrParser<'src, Program<'src>> {
                     }
                 }
                 Line::Label(def) => {
-                    program.defs.insert(def, curr.pc);
+                    curr.defs.insert(def, curr.pc);
                 }
                 Line::Directive(Directive::Org(at)) => curr.pc = at,
                 Line::Directive(Directive::Unaligned(bytes)) => {

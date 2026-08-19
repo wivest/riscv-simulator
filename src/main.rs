@@ -38,7 +38,7 @@ fn main() {
                 for sect in vec![program.text, program.data, program.rodata, program.bss] {
                     linker.import_section(sect);
                 }
-                proc.memory = linker.link(&program.defs);
+                proc.memory = linker.link();
                 proc.execute();
                 println!("{}", proc.memory);
             }
