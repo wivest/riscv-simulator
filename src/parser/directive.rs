@@ -44,6 +44,13 @@ fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Dire
         .map(move |_| Directive::Section(sec))
 }
 
+// ignores everything after a directive until newline
+fn ignore<'src>(name: &'src str) -> impl StrParser<'src, Directive> {
+    just(name)
+        .then(text::newline().not().then(any()).repeated())
+        .to(Directive::Ignore)
+}
+
 pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
     choice((
         org(),
@@ -60,6 +67,12 @@ pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
         section(SectionName::Data, ".data"),
         section(SectionName::Rodata, ".rodata"),
         section(SectionName::Bss, ".bss"),
+        ignore(".equ"),
+        ignore(".set"),
+        ignore(".orig"),
+        ignore(".globl"),
+        ignore(".end"),
+        ignore(".ent"),
     ))
 }
 

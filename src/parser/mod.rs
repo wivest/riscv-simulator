@@ -122,7 +122,7 @@ fn process_line<'src>(
             }
         }
         Line::Directive(Directive::Section(section)) => *active = section,
-        Line::Empty => {}
+        Line::Directive(Directive::Ignore) | Line::Empty => {}
     }
 }
 
