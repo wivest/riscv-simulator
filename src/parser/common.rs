@@ -51,6 +51,11 @@ pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
         self.padded_by(text::inline_whitespace())
     }
 
+    fn name_then<A, P: StrParser<'src, A>>(self, next: P) -> impl StrParser<'src, A> {
+        self.ignore_then(text::inline_whitespace().at_least(1))
+            .ignore_then(next)
+    }
+
     fn then_arg<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
         self.then_ignore(just(',')).then(arg)
     }

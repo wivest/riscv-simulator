@@ -8,7 +8,7 @@ use crate::language::{
 
 pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("mv")
-        .ignore_then(register())
+        .name_then(register())
         .then_ignore(just(","))
         .then(register())
         .map(|(rd, rs)| {
@@ -24,7 +24,7 @@ pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 // arithmetic
 pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("neg")
-        .ignore_then(register())
+        .name_then(register())
         .then_ignore(just(","))
         .then(register())
         .map(|(rd, rs2)| {
@@ -40,7 +40,7 @@ pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 // bitwise logic
 pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("not")
-        .ignore_then(register())
+        .name_then(register())
         .then_ignore(just(","))
         .then(register())
         .map(|(rd, rs)| {
@@ -56,7 +56,7 @@ pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 // load
 pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("li")
-        .ignore_then(register())
+        .name_then(register())
         .then_ignore(just(","))
         .then(number(32, i32::from_le_bytes))
         .map(move |(rd, imm)| {
@@ -78,7 +78,7 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 
 pub fn la<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("la")
-        .ignore_then(register())
+        .name_then(register())
         .then_ignore(just(","))
         .then(label_ref())
         .map(move |(rd, label)| {
@@ -100,7 +100,7 @@ pub fn la<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 
 // jump
 pub fn j<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
-    just("j").ignore_then(offset(20)).map(|imm| {
+    just("j").name_then(offset(21)).map(|imm| {
         vec![Instruction::JType {
             name: JType::Jal,
             rd: 0,
@@ -110,7 +110,7 @@ pub fn j<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset
 }
 
 pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
-    just("call").ignore_then(label_ref()).map(|label| {
+    just("call").name_then(label_ref()).map(|label| {
         vec![
             Instruction::UType {
                 name: UType::Auipc,
@@ -128,7 +128,7 @@ pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 }
 
 pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
-    just("call").ignore_then(label_ref()).map(|label| {
+    just("tail").name_then(label_ref()).map(|label| {
         vec![
             Instruction::UType {
                 name: UType::Auipc,
@@ -152,6 +152,16 @@ pub fn ret<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
         rs: 1,
         imm: Immediate::Value(0),
     }])
+}
+
+pub fn jal<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+    just("jal").name_then(offset(21)).map(|imm| {
+        vec![Instruction::JType {
+            name: JType::Jal,
+            rd: 1,
+            imm,
+        }]
+    })
 }
 
 // branch
@@ -325,6 +335,7 @@ pub fn pseudo_instructions<'src>()
         call(),
         tail(),
         ret(),
+        jal(),
         beqz(),
         bnez(),
         bltz(),
