@@ -5,7 +5,7 @@ use crate::language::{
 };
 
 use chumsky::prelude::*;
-use real::*;
+use real::real_instructions;
 use section::Section;
 
 mod common;
@@ -80,75 +80,50 @@ pub fn program<'src>() -> impl StrParser<'src, Program<'src>> {
                 SectionName::Bss => &mut program.bss,
             };
 
-            match line {
-                Line::Instruction(real) => {
-                    curr.store_instr(curr.pc, real);
-                    curr.pc += 4;
-                }
-                Line::Pseudo(pseudo) => {
-                    for i in pseudo {
-                        curr.store_instr(curr.pc, i);
-                        curr.pc += 4;
-                    }
-                }
-                Line::Label(def) => {
-                    curr.defs.insert(def, curr.pc);
-                }
-                Line::Directive(Directive::Org(at)) => curr.pc = at,
-                Line::Directive(Directive::Unaligned(bytes)) => {
-                    for b in bytes {
-                        curr.set(curr.pc, b);
-                        curr.pc += 1;
-                    }
-                }
-                Line::Directive(Directive::Aligned(size, bytes)) => {
-                    curr.pc = curr.pc.next_multiple_of(size);
-                    for b in bytes {
-                        curr.set(curr.pc, b);
-                        curr.pc += 1;
-                    }
-                }
-                Line::Directive(Directive::Section(section)) => active = section,
-                Line::Empty => {}
-            }
+            process_line(line, curr, &mut active);
         }
 
         program
     })
 }
 
-macro_rules! instructions {
-    ($func:expr, $en:ident, [ $($var:ident),+ $(,)?]) => {
-        choice(($({
-            let name: &'static str = stringify!($var).to_lowercase().leak();
-            $func($en::$var, just(name))
-        },)+)).boxed()
-    };
-}
+fn process_line<'src>(
+    line: Line<'src>,
+    curr: &mut Section<'src, Immediate<'src>, Offset<'src>>,
+    active: &mut SectionName,
+) {
+    match line {
+        Line::Instruction(real) => {
+            curr.store_instr(curr.pc, real);
+            curr.pc += 4;
+        }
+        Line::Pseudo(pseudo) => {
+            for i in pseudo {
+                curr.store_instr(curr.pc, i);
+                curr.pc += 4;
+            }
+        }
+        Line::Label(def) => {
+            curr.defs.insert(def, curr.pc);
+        }
 
-fn real_instructions<'src>() -> impl StrParser<'src, Instruction<Immediate<'src>, Offset<'src>>> {
-    let btype_ins = instructions!(btype, BType, [Beq, Bne, Blt, Bltu, Bge, Bgeu]);
-    let itype_ins = instructions!(
-        itype,
-        IType,
-        [Addi, Andi, Ori, Xori, Slli, Srli, Srai, Jalr]
-    );
-    let iltype_ins = instructions!(itype_load, IType, [Lw, Lh, Lhu, Lb, Lbu]);
-    let jtype_ins = instructions!(jtype, JType, [Jal]);
-    let rtype_ins = instructions!(
-        rtype,
-        RType,
-        [
-            Add, Sub, Mul, Mulh, Mulhu, Mulhsu, Div, Rem, And, Or, Xor, Sll, Srl, Sra,
-        ]
-    );
-    let stype_ins = instructions!(stype, SType, [Sw, Sh, Sb]);
-    let utype_ins = instructions!(utype, UType, [Lui, Auipc]);
-    let system_ins = system();
-
-    choice((
-        btype_ins, itype_ins, iltype_ins, jtype_ins, rtype_ins, stype_ins, utype_ins, system_ins,
-    ))
+        Line::Directive(Directive::Org(at)) => curr.pc = at,
+        Line::Directive(Directive::Unaligned(bytes)) => {
+            for b in bytes {
+                curr.set(curr.pc, b);
+                curr.pc += 1;
+            }
+        }
+        Line::Directive(Directive::Aligned(size, bytes)) => {
+            curr.pc = curr.pc.next_multiple_of(size);
+            for b in bytes {
+                curr.set(curr.pc, b);
+                curr.pc += 1;
+            }
+        }
+        Line::Directive(Directive::Section(section)) => *active = section,
+        Line::Empty => {}
+    }
 }
 
 #[cfg(test)]

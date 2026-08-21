@@ -84,3 +84,38 @@ pub fn system<'src>() -> impl StrParser<'src, Instruction<Immediate<'src>, Offse
 
     choice((ebreak,))
 }
+
+macro_rules! instructions {
+    ($func:expr, $en:ident, [ $($var:ident),+ $(,)?]) => {
+        choice(($({
+            let name: &'static str = stringify!($var).to_lowercase().leak();
+            $func($en::$var, just(name))
+        },)+)).boxed()
+    };
+}
+
+pub fn real_instructions<'src>() -> impl StrParser<'src, Instruction<Immediate<'src>, Offset<'src>>>
+{
+    let btype_ins = instructions!(btype, BType, [Beq, Bne, Blt, Bltu, Bge, Bgeu]);
+    let itype_ins = instructions!(
+        itype,
+        IType,
+        [Addi, Andi, Ori, Xori, Slli, Srli, Srai, Jalr]
+    );
+    let iltype_ins = instructions!(itype_load, IType, [Lw, Lh, Lhu, Lb, Lbu]);
+    let jtype_ins = instructions!(jtype, JType, [Jal]);
+    let rtype_ins = instructions!(
+        rtype,
+        RType,
+        [
+            Add, Sub, Mul, Mulh, Mulhu, Mulhsu, Div, Rem, And, Or, Xor, Sll, Srl, Sra,
+        ]
+    );
+    let stype_ins = instructions!(stype, SType, [Sw, Sh, Sb]);
+    let utype_ins = instructions!(utype, UType, [Lui, Auipc]);
+    let system_ins = system();
+
+    choice((
+        btype_ins, itype_ins, iltype_ins, jtype_ins, rtype_ins, stype_ins, utype_ins, system_ins,
+    ))
+}
