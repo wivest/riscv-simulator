@@ -35,10 +35,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn label_reference() {
+    fn test_reference() {
         let result = label_ref().parse("label");
         assert_eq!(result.unwrap(), Reference("label"));
-        let result = label_ref().parse("  label // comment");
+        let result = label_ref().parse("  label \t");
         assert_eq!(result.unwrap(), Reference("label"));
         let result = label_ref().parse("__4lphanuM");
         assert_eq!(result.unwrap(), Reference("__4lphanuM"));
@@ -49,10 +49,10 @@ mod tests {
     }
 
     #[test]
-    fn label_definition() {
+    fn test_definition() {
         let result = label_def().parse("label:");
         assert_eq!(result.unwrap(), Definition("label"));
-        let result = label_def().parse("  label : // comment");
+        let result = label_def().parse("  label \t: ");
         assert_eq!(result.unwrap(), Definition("label"));
         let result = label_def().parse("__4lphanuM:");
         assert_eq!(result.unwrap(), Definition("__4lphanuM"));

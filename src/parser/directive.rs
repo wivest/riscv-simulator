@@ -81,14 +81,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn asciz_dir() {
+    fn test_asciz() {
         let result = asciz().parse(".asciz \"hello world!\"");
         let expected = b"hello world!\0".to_vec();
         assert_eq!(result.unwrap(), Directive::Unaligned(expected));
     }
 
     #[test]
-    fn byte() {
+    fn test_byte() {
         let result = unaligned::<1>(".byte").parse(".byte 42");
         assert_eq!(result.unwrap(), Directive::Unaligned(vec![42]));
         let result = unaligned::<1>(".byte").parse(".byte 0x88, 255, -1");
