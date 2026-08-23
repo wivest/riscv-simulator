@@ -88,7 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn test_byte() {
+    fn test_bytes() {
         let result = unaligned::<1>(".byte").parse(".byte 42");
         assert_eq!(result.unwrap(), Directive::Unaligned(vec![42]));
         let result = unaligned::<1>(".byte").parse(".byte 0x88, 255, -1");
@@ -96,5 +96,26 @@ mod tests {
             result.unwrap(),
             Directive::Unaligned(vec![0x88, 255, -1i8 as u8])
         );
+
+        let result = unaligned::<4>(".4byte").parse(".4byte 0x42cafe, -1");
+        assert_eq!(
+            result.unwrap(),
+            Directive::Unaligned(vec![0xfe, 0xca, 0x42, 0x00, 0xff, 0xff, 0xff, 0xff])
+        );
+        let result = aligned::<4>(".word").parse(".word 0x42cafe, -1");
+        assert_eq!(
+            result.unwrap(),
+            Directive::Aligned(4, vec![0xfe, 0xca, 0x42, 0x00, 0xff, 0xff, 0xff, 0xff])
+        );
+    }
+
+    #[test]
+    fn test_sections() {
+        let result = section(SectionName::Text, ".text").parse(".text");
+        assert_eq!(result.unwrap(), Directive::Section(SectionName::Text));
+        let result = section(SectionName::Bss, ".bss").parse(". bss");
+        assert_eq!(result.has_errors(), true);
+        let result = ignore(".equ").parse(".equ some 4-rgumnt$");
+        assert_eq!(result.unwrap(), Directive::Ignore);
     }
 }

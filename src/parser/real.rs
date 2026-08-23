@@ -128,3 +128,108 @@ pub fn real_instructions<'src>() -> impl StrParser<'src, Instruction<Immediate<'
         btype_ins, itype_ins, jtype_ins, rtype_ins, stype_ins, utype_ins, system_ins,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::language::token::Reference;
+
+    use super::*;
+
+    #[test]
+    fn test_rtype() {
+        let result = real_instructions().parse("add x0, x1, x2");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::RType {
+                name: RType::Add,
+                rd: 0,
+                rs1: 1,
+                rs2: 2
+            }
+        );
+        let result = real_instructions().parse("sub x0,\nx1, x2");
+        assert_eq!(result.has_errors(), true);
+        let result = real_instructions().parse("mulhsux0, x1, x2");
+        assert_eq!(result.has_errors(), true);
+        let result = real_instructions().parse("or x0, x1, 2");
+        assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_itype() {
+        let result = real_instructions().parse("addi x0, x1, 2");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::IType {
+                name: IType::Addi,
+                rd: 0,
+                rs: 1,
+                imm: Immediate::Value(2)
+            }
+        );
+        let result = real_instructions().parse("andi x0, x1, %lo(label)");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::IType {
+                name: IType::Andi,
+                rd: 0,
+                rs: 1,
+                imm: Immediate::Lower(Reference("label"))
+            }
+        );
+        let result = real_instructions().parse("addi x0, x1, 2");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::IType {
+                name: IType::Addi,
+                rd: 0,
+                rs: 1,
+                imm: Immediate::Value(2)
+            }
+        );
+        let result = real_instructions().parse("srli x0, x1 2");
+        assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_stype() {
+        let result = real_instructions().parse("sw x2, 42(x1)");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::SType {
+                name: SType::Sw,
+                rs1: 1,
+                rs2: 2,
+                imm: Immediate::Value(42)
+            }
+        );
+        let result = real_instructions().parse("sb x0, x1, 42");
+        assert_eq!(result.has_errors(), true);
+    }
+
+    #[test]
+    fn test_btype() {
+        let result = real_instructions().parse("beq x0, x1, offset");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::BType {
+                name: BType::Beq,
+                rs1: 0,
+                rs2: 1,
+                offset: Offset::Label(Reference("offset"))
+            }
+        );
+        let result = real_instructions().parse("beq x0, x1, 42");
+        assert_eq!(
+            result.unwrap(),
+            Instruction::BType {
+                name: BType::Beq,
+                rs1: 0,
+                rs2: 1,
+                offset: Offset::Value(42)
+            }
+        );
+        let result = real_instructions().parse("beq x0, x1 label");
+        assert_eq!(result.has_errors(), true);
+    }
+}

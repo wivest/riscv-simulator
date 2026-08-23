@@ -125,24 +125,3 @@ fn process_line<'src>(
         Line::Directive(Directive::Ignore) | Line::Empty => {}
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_rtype() {
-        let result = real_instructions().parse("add x0, x1, x2");
-        assert_eq!(
-            result.unwrap(),
-            Instruction::RType {
-                name: RType::Add,
-                rd: 0,
-                rs1: 1,
-                rs2: 2
-            }
-        );
-        let result = real_instructions().parse("add x0,\nx1, x2");
-        assert_eq!(result.has_errors(), true);
-    }
-}

@@ -20,6 +20,7 @@ fn number_radix<'src>(radix: u32, bits: u32) -> impl StrParser<'src, i64> {
         .filter(move |n| 64 - n.leading_zeros() <= bits)
         .map(move |n| (n << (64 - bits)) as i64 >> (64 - bits))
         .inline()
+        .map_err(move |e| Rich::custom(*e.span(), format!("expected number of {} bits", bits)))
 }
 
 pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl StrParser<'src, [u8; N]> {
@@ -43,9 +44,7 @@ pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
     bits: u32,
     from_le_bytes: F,
 ) -> impl StrParser<'src, O> {
-    number_le_bytes(bits)
-        .map(move |bytes| from_le_bytes(bytes))
-        .map_err(move |e| Rich::custom(*e.span(), format!("expected number of {} bits", bits)))
+    number_le_bytes(bits).map(move |bytes| from_le_bytes(bytes))
 }
 
 pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
