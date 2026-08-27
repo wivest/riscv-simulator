@@ -1,5 +1,5 @@
 use crate::language::{
-    directive::{Directive, SectionName},
+    directive::{Byte, Directive, SectionName},
     instruction::*,
     token::{Definition, Immediate, Offset},
 };
@@ -110,15 +110,25 @@ fn process_line<'src>(
         Line::Directive(Directive::Org(at)) => curr.pc = at,
         Line::Directive(Directive::Unaligned(bytes)) => {
             for b in bytes {
-                curr.set(curr.pc, b);
-                curr.pc += 1;
+                match b {
+                    Byte::Value(b) => {
+                        curr.set(curr.pc, b);
+                        curr.pc += 1;
+                    }
+                    Byte::Address(b, link) => curr.links.push((curr.pc, b, link)),
+                }
             }
         }
         Line::Directive(Directive::Aligned(size, bytes)) => {
             curr.pc = curr.pc.next_multiple_of(size);
             for b in bytes {
-                curr.set(curr.pc, b);
-                curr.pc += 1;
+                match b {
+                    Byte::Value(b) => {
+                        curr.set(curr.pc, b);
+                        curr.pc += 1;
+                    }
+                    Byte::Address(b, link) => curr.links.push((curr.pc, b, link)),
+                }
             }
         }
         Line::Directive(Directive::Section(section)) => *active = section,
