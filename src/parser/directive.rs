@@ -8,6 +8,16 @@ fn org<'src>() -> impl StrParser<'src, Directive> {
         .map(|at: usize| Directive::Org(at))
 }
 
+fn ascii<'src>() -> impl StrParser<'src, Directive> {
+    let string = just('"')
+        .ignore_then(none_of('"').repeated().collect())
+        .then_ignore(just('"'));
+    just(".ascii")
+        .ignore_then(text::inline_whitespace())
+        .ignore_then(string)
+        .map(|s: String| Directive::Unaligned(s.bytes().collect()))
+}
+
 fn asciz<'src>() -> impl StrParser<'src, Directive> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
@@ -54,6 +64,7 @@ fn ignore<'src>(name: &'src str) -> impl StrParser<'src, Directive> {
 pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
     choice((
         org(),
+        ascii(),
         asciz(),
         unaligned::<1>(".byte"),
         unaligned::<2>(".2byte"),
@@ -81,7 +92,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_asciz() {
+    fn test_ascii() {
+        let result = ascii().parse(".ascii\"hello world!\"");
+        let expected = b"hello world!".to_vec();
+        assert_eq!(result.unwrap(), Directive::Unaligned(expected));
+
         let result = asciz().parse(".asciz \"hello world!\"");
         let expected = b"hello world!\0".to_vec();
         assert_eq!(result.unwrap(), Directive::Unaligned(expected));
