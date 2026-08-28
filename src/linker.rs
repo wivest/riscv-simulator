@@ -11,6 +11,7 @@ use std::collections::HashMap;
 pub struct Linker<'src> {
     defs: HashMap<Definition<'src>, usize>,
     memory: HashMap<usize, Word<Immediate<'src>, Offset<'src>>>,
+    links: Vec<(usize, usize, String)>,
 }
 
 impl<'src> Linker<'src> {
@@ -18,6 +19,7 @@ impl<'src> Linker<'src> {
         Self {
             defs: HashMap::new(),
             memory: HashMap::new(),
+            links: Vec::new(),
         }
     }
 
@@ -28,10 +30,11 @@ impl<'src> Linker<'src> {
         for (def, at) in sect.defs {
             self.defs.insert(def, sect.base / 4 + at);
         }
+        self.links.extend(sect.links);
     }
 
     pub fn link(self) -> Memory<i32, i32> {
-        Memory::from(
+        let mut result = Memory::from(
             self.memory
                 .into_iter()
                 .map(|(div4, word)| {
@@ -44,7 +47,12 @@ impl<'src> Linker<'src> {
                     (div4, word)
                 })
                 .collect(),
-        )
+        );
+        for (at, b, link) in self.links {
+            let addr = *self.defs.get(&Definition(&link)).unwrap();
+            result.set(at, addr.to_le_bytes()[b]);
+        }
+        result
     }
 }
 

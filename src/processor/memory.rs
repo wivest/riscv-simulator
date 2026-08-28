@@ -19,7 +19,7 @@ impl<I: Copy, O: Copy> Memory<I, O> {
             Word::Instruction(_) => todo!(),
             Word::Value(v) => *v,
         };
-        Some(word.to_ne_bytes()[addr % 4]) // TODO: endianness
+        Some(word.to_le_bytes()[addr % 4])
     }
 
     pub fn set(&mut self, addr: usize, value: u8) {
@@ -31,7 +31,7 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         let mut bytes = word.to_ne_bytes();
         bytes[addr % 4] = value;
         self.0
-            .insert(addr / 4, Word::Value(u32::from_ne_bytes(bytes)));
+            .insert(addr / 4, Word::Value(u32::from_le_bytes(bytes)));
     }
 
     pub fn load_instr(&self, pc: usize) -> Option<Instruction<I, O>> {

@@ -106,32 +106,34 @@ fn process_line<'src>(
         Line::Label(def) => {
             curr.defs.insert(def, curr.pc);
         }
+        Line::Directive(dir) => process_directive(dir, curr, active),
+        Line::Empty => {}
+    }
+}
 
-        Line::Directive(Directive::Org(at)) => curr.pc = at,
-        Line::Directive(Directive::Unaligned(bytes)) => {
-            for b in bytes {
-                match b {
-                    Byte::Value(b) => {
-                        curr.set(curr.pc, b);
-                        curr.pc += 1;
-                    }
-                    Byte::Address(b, link) => curr.links.push((curr.pc, b, link)),
-                }
+fn process_directive<'src>(
+    dir: Directive,
+    curr: &mut Section<'src, Immediate<'src>, Offset<'src>>,
+    active: &mut SectionName,
+) {
+    fn set_bytes(bytes: Vec<Byte>, curr: &mut Section<'_, Immediate<'_>, Offset<'_>>) {
+        for b in bytes {
+            match b {
+                Byte::Value(b) => curr.set(curr.pc, b),
+                Byte::Address(i, link) => curr.links.push((curr.pc, i, link)),
             }
+            curr.pc += 1;
         }
-        Line::Directive(Directive::Aligned(size, bytes)) => {
+    }
+
+    match dir {
+        Directive::Org(at) => curr.pc = at,
+        Directive::Unaligned(bytes) => set_bytes(bytes, curr),
+        Directive::Aligned(size, bytes) => {
             curr.pc = curr.pc.next_multiple_of(size);
-            for b in bytes {
-                match b {
-                    Byte::Value(b) => {
-                        curr.set(curr.pc, b);
-                        curr.pc += 1;
-                    }
-                    Byte::Address(b, link) => curr.links.push((curr.pc, b, link)),
-                }
-            }
+            set_bytes(bytes, curr);
         }
-        Line::Directive(Directive::Section(section)) => *active = section,
-        Line::Directive(Directive::Ignore) | Line::Empty => {}
+        Directive::Section(section) => *active = section,
+        Directive::Ignore => {}
     }
 }
