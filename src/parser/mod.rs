@@ -128,6 +128,9 @@ fn process_directive<'src>(
 
     match dir {
         Directive::Org(at) => curr.pc = at,
+        Directive::Equ(s, v) => {
+            curr.equs.insert(s, v);
+        }
         Directive::Unaligned(bytes) => set_bytes(bytes, curr),
         Directive::Aligned(size, bytes) => {
             curr.pc = curr.pc.next_multiple_of(size);

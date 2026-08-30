@@ -7,6 +7,7 @@ pub enum Byte {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Directive {
     Org(usize),
+    Equ(String, u32),
     Unaligned(Vec<Byte>),
     Aligned(usize, Vec<Byte>),
     Section(SectionName),

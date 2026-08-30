@@ -9,6 +9,7 @@ pub struct Section<'src, I, O> {
     pub defs: HashMap<Definition<'src>, usize>,
     pub content: HashMap<usize, Word<I, O>>,
     pub links: Vec<(usize, usize, String)>,
+    pub equs: HashMap<String, u32>,
 }
 
 impl<'src, I: Copy, O: Copy> Section<'src, I, O> {
@@ -19,6 +20,7 @@ impl<'src, I: Copy, O: Copy> Section<'src, I, O> {
             defs: HashMap::new(),
             content: HashMap::new(),
             links: Vec::new(),
+            equs: HashMap::new(),
         }
     }
 

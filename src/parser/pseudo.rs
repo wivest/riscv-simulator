@@ -55,22 +55,28 @@ pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 
 // load
 pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
+    let num = number(32, i32::from_le_bytes)
+        .map(|n| (Immediate::Value(n >> 12), Immediate::Value(n << 20 >> 20))); // TODO: test for negative edge case
+    let equ = text::ident()
+        .inline()
+        .map(|s| (Immediate::Uequ(s), Immediate::Lequ(s)));
+
     just("li")
         .name_then(register())
         .then_ignore(just(","))
-        .then(number(32, i32::from_le_bytes))
-        .map(move |(rd, imm)| {
+        .then(choice((num, equ)))
+        .map(move |(rd, (upp, low))| {
             vec![
                 Instruction::UType {
                     name: UType::Lui,
                     rd,
-                    imm: Immediate::Value(imm >> 12),
+                    imm: upp,
                 },
                 Instruction::IType {
                     name: IType::Addi,
                     rd,
                     rs: 0,
-                    imm: Immediate::Value(imm << 20 >> 20), // TODO: test for negative edge case
+                    imm: low,
                 },
             ]
         })

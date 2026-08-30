@@ -9,8 +9,9 @@ pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label));
+    let equ = text::ident().map(|s| Immediate::Lequ(s));
 
-    choice((imm, lower)).inline()
+    choice((imm, lower, equ)).inline()
 }
 
 pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
@@ -19,8 +20,9 @@ pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Upper(label));
+    let equ = text::ident().map(|s| Immediate::Uequ(s));
 
-    choice((imm, lower)).inline()
+    choice((imm, lower, equ)).inline()
 }
 
 pub fn offset<'src>(bits: u32) -> impl StrParser<'src, Offset<'src>> {

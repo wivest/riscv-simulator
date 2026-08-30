@@ -8,6 +8,13 @@ fn org<'src>() -> impl StrParser<'src, Directive> {
         .map(|at: usize| Directive::Org(at))
 }
 
+fn equ<'src>() -> impl StrParser<'src, Directive> {
+    just(".equ")
+        .name_then(text::ident())
+        .then_arg(number(32, u32::from_le_bytes))
+        .map(|(s, v)| Directive::Equ(s.to_owned(), v))
+}
+
 fn ascii<'src>() -> impl StrParser<'src, Directive> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
@@ -81,6 +88,7 @@ fn ignore<'src>(name: &'src str) -> impl StrParser<'src, Directive> {
 pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
     choice((
         org(),
+        equ(),
         ascii(),
         asciz(),
         unaligned::<1>(".byte"),
@@ -95,13 +103,13 @@ pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
         section(SectionName::Data, ".data"),
         section(SectionName::Rodata, ".rodata"),
         section(SectionName::Bss, ".bss"),
-        ignore(".equ"),
         ignore(".set"),
         ignore(".orig"),
         ignore(".globl"),
         ignore(".end"),
         ignore(".ent"),
     ))
+    .boxed()
 }
 
 #[cfg(test)]
@@ -162,12 +170,16 @@ mod tests {
     }
 
     #[test]
-    fn test_sections() {
-        let result = section(SectionName::Text, ".text").parse(".text");
+    fn test_other() {
+        let result = org().parse(".org 0x200");
+        assert_eq!(result.unwrap(), Directive::Org(0x200));
+        let result = section(SectionName::Text, ".section .text").parse(".text");
         assert_eq!(result.unwrap(), Directive::Section(SectionName::Text));
         let result = section(SectionName::Bss, ".bss").parse(". bss");
         assert_eq!(result.has_errors(), true);
-        let result = ignore(".equ").parse(".equ some 4-rgumnt$");
+        let result = equ().parse(".equ constant, 42");
+        assert_eq!(result.unwrap(), Directive::Equ("constant".to_owned(), 42));
+        let result = ignore(".globl").parse(".globl some 4-rgumnt$");
         assert_eq!(result.unwrap(), Directive::Ignore);
     }
 }
