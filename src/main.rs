@@ -17,6 +17,8 @@ mod linker;
 mod parser;
 mod processor;
 
+const RESET: usize = 0x200;
+
 fn open_file(path: &str) -> Result<String, Error> {
     let mut file = OpenOptions::new().read(true).open(path)?;
     let mut content = String::from("");
@@ -30,10 +32,12 @@ fn main() {
         .unwrap_or("examples/source.asm".to_owned());
 
     if let Ok(content) = open_file(&path) {
-        let result = parser::program().parse(&content).into_result();
+        let result = parser::program((RESET, 0, 0, 0))
+            .parse(&content)
+            .into_result();
         match result {
             Ok(program) => {
-                let mut proc = Processor::new(1024);
+                let mut proc = Processor::new(RESET);
                 let mut linker = Linker::new();
                 for sect in vec![program.text, program.data, program.rodata, program.bss] {
                     linker.import_section(sect);
