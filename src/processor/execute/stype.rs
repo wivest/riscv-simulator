@@ -2,25 +2,25 @@ use super::SType;
 use crate::processor::Processor;
 
 impl SType {
-    pub fn execute(&self, cpu: &mut Processor, rs1: usize, rs2: usize, imm: i32) {
+    pub fn execute(&self, cpu: &mut Processor, rs1: u32, rs2: u32, imm: i32) {
         match self {
             SType::Sb => {
                 let val1 = cpu.get_reg(rs1);
                 let val2 = cpu.get_reg(rs2);
-                let address = (val1 + imm) as usize;
+                let address = (val1 + imm) as u32;
                 cpu.memory.set(address, val2 as u8);
             }
             SType::Sh => {
                 let val1 = cpu.get_reg(rs1);
                 let val2 = cpu.get_reg(rs2);
-                let address = (val1 + imm) as usize;
+                let address = (val1 + imm) as u32;
                 cpu.memory.set(address, val2 as u8);
                 cpu.memory.set(address + 1, (val2 >> 8) as u8);
             }
             SType::Sw => {
                 let val1 = cpu.get_reg(rs1);
                 let val2 = cpu.get_reg(rs2);
-                let address = (val1 + imm) as usize;
+                let address = (val1 + imm) as u32;
                 cpu.memory.set(address, val2 as u8);
                 cpu.memory.set(address + 1, (val2 >> 8) as u8);
                 cpu.memory.set(address + 2, (val2 >> 16) as u8);

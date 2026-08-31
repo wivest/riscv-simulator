@@ -2,30 +2,30 @@ use crate::language::{instruction::Instruction, word::Word};
 
 use std::collections::HashMap;
 
-const PRINT_BASE: usize = 0xffffc000;
-const STATUS_OFFSET: usize = 0x0008;
-const DATA_OFFSET: usize = 0x000c;
+const PRINT_BASE: u32 = 0xffffc000;
+const STATUS_OFFSET: u32 = 0x0008;
+const DATA_OFFSET: u32 = 0x000c;
 
 #[derive(Debug)]
-pub struct Memory<I, O>(HashMap<usize, Word<I, O>>);
+pub struct Memory<I, O>(HashMap<u32, Word<I, O>>);
 
 impl<I: Copy, O: Copy> Memory<I, O> {
-    pub fn from(content: HashMap<usize, Word<I, O>>) -> Self {
+    pub fn from(content: HashMap<u32, Word<I, O>>) -> Self {
         let mut result = Self(content);
         // set status bit to ready
         result.set(PRINT_BASE + STATUS_OFFSET, 1);
         result
     }
 
-    pub fn get(&self, addr: usize) -> Option<u8> {
+    pub fn get(&self, addr: u32) -> Option<u8> {
         let word = match self.0.get(&(addr / 4))? {
             Word::Instruction(_) => todo!(),
             Word::Value(v) => *v,
         };
-        Some(word.to_le_bytes()[addr % 4])
+        Some(word.to_le_bytes()[addr as usize % 4])
     }
 
-    fn mmio(&mut self, addr: usize, value: u8) -> bool {
+    fn mmio(&mut self, addr: u32, value: u8) -> bool {
         if addr != PRINT_BASE + DATA_OFFSET {
             false
         } else {
@@ -38,7 +38,7 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         }
     }
 
-    pub fn set(&mut self, addr: usize, value: u8) {
+    pub fn set(&mut self, addr: u32, value: u8) {
         if self.mmio(addr, value) {
             return;
         }
@@ -49,12 +49,12 @@ impl<I: Copy, O: Copy> Memory<I, O> {
             Word::Value(v) => *v,
         };
         let mut bytes = word.to_ne_bytes();
-        bytes[addr % 4] = value;
+        bytes[addr as usize % 4] = value;
         self.0
             .insert(addr / 4, Word::Value(u32::from_le_bytes(bytes)));
     }
 
-    pub fn load_instr(&self, pc: usize) -> Option<Instruction<I, O>> {
+    pub fn load_instr(&self, pc: u32) -> Option<Instruction<I, O>> {
         let word = self.0.get(&(pc / 4))?;
         match word {
             Word::Instruction(i) => Some(*i),

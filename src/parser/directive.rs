@@ -4,8 +4,8 @@ use crate::language::directive::{Byte, Directive, SectionName};
 
 fn org<'src>() -> impl StrParser<'src, Directive> {
     just(".org")
-        .name_then(number(32, usize::from_le_bytes))
-        .map(|at: usize| Directive::Org(at))
+        .name_then(number(32, u32::from_le_bytes))
+        .map(|at: u32| Directive::Org(at))
 }
 
 fn equ<'src>() -> impl StrParser<'src, Directive> {
@@ -44,7 +44,11 @@ fn asciz<'src>() -> impl StrParser<'src, Directive> {
 
 fn symbol<'src>(b: usize) -> impl StrParser<'src, Vec<Byte>> {
     text::ascii::ident()
-        .map(move |s: &'src str| (0..b).map(|i| Byte::Address(i, s.to_owned())).collect())
+        .map(move |s: &'src str| {
+            (0..b)
+                .map(|i| Byte::Address(i as u32, s.to_owned()))
+                .collect()
+        })
         .inline()
 }
 
@@ -67,7 +71,7 @@ fn unaligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Direc
 fn aligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive> {
     just(dir)
         .name_then(bytes::<B>())
-        .map(|list: Vec<Byte>| Directive::Aligned(B, list))
+        .map(|list: Vec<Byte>| Directive::Aligned(B as u32, list))
 }
 
 fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Directive> {
@@ -173,7 +177,7 @@ mod tests {
     fn test_other() {
         let result = org().parse(".org 0x200");
         assert_eq!(result.unwrap(), Directive::Org(0x200));
-        let result = section(SectionName::Text, ".section .text").parse(".text");
+        let result = section(SectionName::Text, ".text").parse(".section .text");
         assert_eq!(result.unwrap(), Directive::Section(SectionName::Text));
         let result = section(SectionName::Bss, ".bss").parse(". bss");
         assert_eq!(result.has_errors(), true);

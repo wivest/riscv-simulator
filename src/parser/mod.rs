@@ -43,7 +43,7 @@ pub struct Program<'src> {
 }
 
 impl<'src> Program<'src> {
-    fn new(t: usize, d: usize, r: usize, b: usize) -> Self {
+    fn new(t: u32, d: u32, r: u32, b: u32) -> Self {
         Program {
             text: Section::new(0, t),
             data: Section::new(0, d),
@@ -67,9 +67,7 @@ fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
         .collect::<Vec<_>>()
 }
 
-pub fn program<'src>(
-    (t, d, r, b): (usize, usize, usize, usize),
-) -> impl StrParser<'src, Program<'src>> {
+pub fn program<'src>((t, d, r, b): (u32, u32, u32, u32)) -> impl StrParser<'src, Program<'src>> {
     lines().map(move |lines| {
         let mut program = Program::new(t, d, r, b);
         let mut active = SectionName::Text;

@@ -2,7 +2,7 @@ use super::RType;
 use crate::processor::Processor;
 
 impl RType {
-    pub fn execute(&self, cpu: &mut Processor, rd: usize, rs1: usize, rs2: usize) {
+    pub fn execute(&self, cpu: &mut Processor, rd: u32, rs1: u32, rs2: u32) {
         let s1 = cpu.get_reg(rs1);
         let s2 = cpu.get_reg(rs2);
         match self {

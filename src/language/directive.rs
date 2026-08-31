@@ -1,15 +1,15 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum Byte {
     Value(u8),
-    Address(usize, String),
+    Address(u32, String),
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Directive {
-    Org(usize),
+    Org(u32),
     Equ(String, u32),
     Unaligned(Vec<Byte>),
-    Aligned(usize, Vec<Byte>),
+    Aligned(u32, Vec<Byte>),
     Section(SectionName),
     Ignore,
 }

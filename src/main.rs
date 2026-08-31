@@ -17,7 +17,7 @@ mod linker;
 mod parser;
 mod processor;
 
-const RESET: usize = 0x200;
+const RESET: u32 = 0x200;
 
 fn open_file(path: &str) -> Result<String, Error> {
     let mut file = OpenOptions::new().read(true).open(path)?;
@@ -44,7 +44,6 @@ fn main() {
                 let mut proc = Processor::new(RESET, linker.link());
                 proc.execute();
                 println!("{}", proc.memory);
-                println!("{:?}", proc.registers)
             }
             Err(errors) => {
                 for err in errors {

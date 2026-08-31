@@ -9,9 +9,9 @@ use crate::processor::memory::Memory;
 use std::collections::HashMap;
 
 pub struct Linker<'src> {
-    defs: HashMap<Definition<'src>, usize>,
-    memory: HashMap<usize, Word<Immediate<'src>, Offset<'src>>>,
-    links: Vec<(usize, usize, String)>,
+    defs: HashMap<Definition<'src>, u32>,
+    memory: HashMap<u32, Word<Immediate<'src>, Offset<'src>>>,
+    links: Vec<(u32, u32, String)>,
     equs: HashMap<String, u32>,
 }
 
@@ -53,7 +53,7 @@ impl<'src> Linker<'src> {
         );
         for (at, b, link) in self.links {
             let addr = *self.defs.get(&Definition(&link)).unwrap();
-            result.set(at, addr.to_le_bytes()[b]);
+            result.set(at, addr.to_le_bytes()[b as usize]);
         }
         result
     }
@@ -61,8 +61,8 @@ impl<'src> Linker<'src> {
 
 pub fn translate_instr(
     instr: Instruction<Immediate, Offset>,
-    addr: usize,
-    defs: &HashMap<Definition, usize>,
+    addr: u32,
+    defs: &HashMap<Definition, u32>,
     equs: &HashMap<String, u32>,
 ) -> Instruction<i32, i32> {
     let resolve = |l| *defs.get(&Definition(l)).unwrap_or(&0) as i32;

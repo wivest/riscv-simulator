@@ -1,6 +1,6 @@
 use crate::parser::common::*;
 
-pub fn register<'src>() -> impl StrParser<'src, usize> {
+pub fn register<'src>() -> impl StrParser<'src, u32> {
     let index = just("x").ignore_then(digits(10)).filter(|n| *n <= 31);
 
     let zero = just("zero").map(|_| 0);
@@ -26,7 +26,7 @@ pub fn register<'src>() -> impl StrParser<'src, usize> {
         .map(|n| n + 10);
 
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
-        .map(|n| n as usize)
+        .map(|n| n as u32)
         .inline()
         .map_err(|e| Rich::custom(*e.span(), "expected register"))
 }
