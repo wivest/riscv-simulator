@@ -2,16 +2,19 @@ use crate::language::{instruction::Instruction, word::Word};
 
 use std::collections::HashMap;
 
+const PRINT_BASE: usize = 0xffffc000;
+const STATUS_OFFSET: usize = 0x0008;
+const DATA_OFFSET: usize = 0x000c;
+
 #[derive(Debug)]
 pub struct Memory<I, O>(HashMap<usize, Word<I, O>>);
 
 impl<I: Copy, O: Copy> Memory<I, O> {
-    pub fn new() -> Self {
-        Self(HashMap::new())
-    }
-
     pub fn from(content: HashMap<usize, Word<I, O>>) -> Self {
-        Self(content)
+        let mut result = Self(content);
+        // set status bit to ready
+        result.set(PRINT_BASE + STATUS_OFFSET, 1);
+        result
     }
 
     pub fn get(&self, addr: usize) -> Option<u8> {
@@ -22,7 +25,24 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         Some(word.to_le_bytes()[addr % 4])
     }
 
+    fn mmio(&mut self, addr: usize, value: u8) -> bool {
+        if addr != PRINT_BASE + DATA_OFFSET {
+            false
+        } else {
+            // setting status bit has no sense, because we have a single thread
+            // we leave it for correctness
+            self.set(PRINT_BASE + STATUS_OFFSET, 0);
+            print!("{}", value as char);
+            self.set(PRINT_BASE + STATUS_OFFSET, 1);
+            true
+        }
+    }
+
     pub fn set(&mut self, addr: usize, value: u8) {
+        if self.mmio(addr, value) {
+            return;
+        }
+
         let cell = self.0.get(&(addr / 4)).unwrap_or(&Word::Value(0));
         let word = match cell {
             Word::Instruction(_) => return, // TODO: error

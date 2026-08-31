@@ -37,14 +37,14 @@ fn main() {
             .into_result();
         match result {
             Ok(program) => {
-                let mut proc = Processor::new(RESET);
                 let mut linker = Linker::new();
                 for sect in vec![program.text, program.data, program.rodata, program.bss] {
                     linker.import_section(sect);
                 }
-                proc.memory = linker.link();
+                let mut proc = Processor::new(RESET, linker.link());
                 proc.execute();
                 println!("{}", proc.memory);
+                println!("{:?}", proc.registers)
             }
             Err(errors) => {
                 for err in errors {

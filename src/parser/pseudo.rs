@@ -55,11 +55,15 @@ pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 
 // load
 pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
-    let num = number(32, i32::from_le_bytes)
-        .map(|n| (Immediate::Value(n >> 12), Immediate::Value(n << 20 >> 20))); // TODO: test for negative edge case
+    let num = number(32, i32::from_le_bytes).map(|n| {
+        (
+            Immediate::Value((n + 0x800) >> 12),
+            Immediate::Value(n << 20 >> 20),
+        )
+    });
     let equ = text::ident()
         .inline()
-        .map(|s| (Immediate::Uequ(s), Immediate::Lequ(s)));
+        .map(|s| (Immediate::EquUpper(s), Immediate::Equ12(s)));
 
     just("li")
         .name_then(register())
@@ -75,7 +79,7 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
                 Instruction::IType {
                     name: IType::Addi,
                     rd,
-                    rs: 0,
+                    rs: rd,
                     imm: low,
                 },
             ]
@@ -92,7 +96,7 @@ pub fn la<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
                 Instruction::UType {
                     name: UType::Lui,
                     rd,
-                    imm: Immediate::Upper(label),
+                    imm: Immediate::UpperPseudo(label),
                 },
                 Instruction::IType {
                     name: IType::Addi,

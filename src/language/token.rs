@@ -9,11 +9,13 @@ pub enum Offset<'a> {
 pub enum Immediate<'a> {
     Value(i32),
     Upper(Reference<'a>),
+    UpperPseudo(Reference<'a>),
     Lower(Reference<'a>),
     PcrelHi(Reference<'a>),
     PcrelLo(Reference<'a>),
-    Uequ(&'a str),
-    Lequ(&'a str),
+    EquUpper(&'a str),
+    Equ20(&'a str),
+    Equ12(&'a str),
 }
 
 // label

@@ -9,7 +9,7 @@ pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label));
-    let equ = text::ident().map(|s| Immediate::Lequ(s));
+    let equ = text::ident().map(|s| Immediate::Equ12(s));
 
     choice((imm, lower, equ)).inline()
 }
@@ -20,7 +20,7 @@ pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Upper(label));
-    let equ = text::ident().map(|s| Immediate::Uequ(s));
+    let equ = text::ident().map(|s| Immediate::Equ20(s));
 
     choice((imm, lower, equ)).inline()
 }

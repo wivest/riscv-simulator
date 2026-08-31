@@ -74,11 +74,13 @@ pub fn translate_instr(
     let calc_imm = |imm| match imm {
         Immediate::Value(v) => v,
         Immediate::Upper(Reference(l)) => resolve(l) >> 12,
+        Immediate::UpperPseudo(Reference(l)) => (resolve(l) + 0x800) >> 12,
         Immediate::Lower(Reference(l)) => resolve(l) << 20 >> 20,
-        Immediate::PcrelHi(Reference(l)) => resolve_rel(l) >> 12,
-        Immediate::PcrelLo(Reference(l)) => resolve_rel(l) << 20 >> 20 + 4, // +4 only comes from call/tail (change?)
-        Immediate::Uequ(s) => *equs.get(s).unwrap() as i32 >> 12,
-        Immediate::Lequ(s) => (*equs.get(s).unwrap() as i32) << 20 >> 20,
+        Immediate::PcrelHi(Reference(l)) => resolve_rel(l) + 0x800 >> 12,
+        Immediate::PcrelLo(Reference(l)) => (resolve_rel(l) << 20 >> 20) + 4, // +4 only comes from call/tail (change?)
+        Immediate::EquUpper(s) => (*equs.get(s).unwrap() as i32 + 0x800) >> 12,
+        Immediate::Equ20(s) => (*equs.get(s).unwrap() as i32) << 12 >> 12,
+        Immediate::Equ12(s) => (*equs.get(s).unwrap() as i32) << 20 >> 20,
     };
 
     match instr {

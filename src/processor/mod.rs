@@ -6,15 +6,15 @@ pub mod memory;
 pub struct Processor {
     pub pc: usize,
     pub memory: Memory<i32, i32>,
-    registers: [i32; 32],
+    pub registers: [i32; 32], // TODO: remove pub
 }
 
 impl Processor {
-    pub fn new(reset: usize) -> Self {
+    pub fn new(reset: usize, memory: Memory<i32, i32>) -> Self {
         Processor {
             pc: reset,
             registers: [0; 32],
-            memory: Memory::new(),
+            memory,
         }
     }
 
@@ -31,9 +31,10 @@ impl Processor {
     pub fn execute(&mut self) {
         loop {
             let Some(instr) = self.memory.load_instr(self.pc) else {
+                println!("{}: not an instr", self.pc);
                 break;
             };
-            println!("{instr:?}");
+            println!("{:#x}: {instr:?} | {}", self.pc, self.registers[10]);
             if !instr.execute(self) {
                 break;
             }
