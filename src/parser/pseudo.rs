@@ -121,13 +121,13 @@ pub fn call<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
             Instruction::UType {
                 name: UType::Auipc,
                 rd: 1,
-                imm: Immediate::Upper(label),
+                imm: Immediate::PcrelHi(label),
             },
             Instruction::IType {
                 name: IType::Jalr,
                 rd: 1,
                 rs: 1,
-                imm: Immediate::Lower(label),
+                imm: Immediate::PcrelLo(label),
             },
         ]
     })
@@ -139,13 +139,13 @@ pub fn tail<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
             Instruction::UType {
                 name: UType::Auipc,
                 rd: 6,
-                imm: Immediate::Upper(label),
+                imm: Immediate::PcrelHi(label),
             },
             Instruction::IType {
                 name: IType::Jalr,
                 rd: 0,
                 rs: 6,
-                imm: Immediate::Lower(label),
+                imm: Immediate::PcrelLo(label),
             },
         ]
     })

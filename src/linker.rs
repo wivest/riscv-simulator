@@ -65,7 +65,8 @@ pub fn translate_instr(
     defs: &HashMap<Definition, usize>,
     equs: &HashMap<String, u32>,
 ) -> Instruction<i32, i32> {
-    let resolve = |l| *defs.get(&Definition(l)).unwrap_or(&0) as i32; // TODO: should be relative to pc
+    let resolve = |l| *defs.get(&Definition(l)).unwrap_or(&0) as i32;
+    let resolve_rel = |l| resolve(l) - addr as i32;
     let calc_offset = |offset| match offset {
         Offset::Label(Reference(l)) => resolve(l) - addr as i32,
         Offset::Value(v) => v,
@@ -74,6 +75,8 @@ pub fn translate_instr(
         Immediate::Value(v) => v,
         Immediate::Upper(Reference(l)) => resolve(l) >> 12,
         Immediate::Lower(Reference(l)) => resolve(l) << 20 >> 20,
+        Immediate::PcrelHi(Reference(l)) => resolve_rel(l) >> 12,
+        Immediate::PcrelLo(Reference(l)) => resolve_rel(l) << 20 >> 20 + 4, // +4 only comes from call/tail (change?)
         Immediate::Uequ(s) => *equs.get(s).unwrap() as i32 >> 12,
         Immediate::Lequ(s) => (*equs.get(s).unwrap() as i32) << 20 >> 20,
     };

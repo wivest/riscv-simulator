@@ -10,6 +10,8 @@ pub enum Immediate<'a> {
     Value(i32),
     Upper(Reference<'a>),
     Lower(Reference<'a>),
+    PcrelHi(Reference<'a>),
+    PcrelLo(Reference<'a>),
     Uequ(&'a str),
     Lequ(&'a str),
 }
