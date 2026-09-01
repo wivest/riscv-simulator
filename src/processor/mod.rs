@@ -37,7 +37,7 @@ impl Processor {
             let Some(instr) = self.memory.load_instr(self.pc) else {
                 break;
             };
-            println!("PC {:#x}: {instr:?} | {}", self.pc, self.registers[10]);
+            println!("[PC {:#010x}]: {instr}", self.pc);
             if !instr.execute(self) {
                 break;
             }

@@ -44,6 +44,7 @@ fn main() {
                 let mut proc = Processor::new(RESET, linker.link());
                 proc.execute();
                 println!("{}", proc.memory);
+                println!("{}", proc.memory.flush());
             }
             Err(errors) => {
                 for err in errors {

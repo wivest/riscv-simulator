@@ -1,4 +1,7 @@
-#[derive(Debug, Clone, Copy, PartialEq)]
+use strum;
+
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum BType {
     Beq,
     Bne,
@@ -8,7 +11,8 @@ pub enum BType {
     Bgeu,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum IType {
     // arithmetic
     Addi,
@@ -30,12 +34,14 @@ pub enum IType {
     Jalr,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum JType {
     Jal,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum RType {
     // arithmetic
     Add,
@@ -56,20 +62,23 @@ pub enum RType {
     Sra,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum SType {
     Sw,
     Sh,
     Sb,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum UType {
     Lui,
     Auipc,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum System {
     Ebreak,
 }
