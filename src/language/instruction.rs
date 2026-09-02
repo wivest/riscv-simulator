@@ -36,7 +36,7 @@ pub enum Instruction<I, O> {
         rd: u32,
         imm: I,
     },
-    System(System),
+    Ebreak,
 }
 
 impl std::fmt::Display for Instruction<i32, i32> {
@@ -63,7 +63,7 @@ impl std::fmt::Display for Instruction<i32, i32> {
                 imm,
             } => write!(f, "{name} x{rs2}, {imm}(x{rs1})"),
             Self::UType { name, rd, imm } => write!(f, "{name} x{rd}, {imm}"),
-            Self::System(name) => write!(f, "{name}"),
+            Self::Ebreak => write!(f, "ebreak"),
         }
     }
 }

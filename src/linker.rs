@@ -123,6 +123,6 @@ pub fn translate_instr(
             rd,
             imm: calc_imm(imm),
         },
-        System(sys) => System(sys),
+        Ebreak => Ebreak,
     }
 }

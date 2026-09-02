@@ -10,7 +10,7 @@ mod stype;
 mod utype;
 
 impl Instruction<i32, i32> {
-    pub fn execute(&self, cpu: &mut Processor) -> bool {
+    pub fn execute(&self, cpu: &mut Processor) {
         match *self {
             Instruction::BType {
                 name,
@@ -28,8 +28,7 @@ impl Instruction<i32, i32> {
                 imm,
             } => name.execute(cpu, rs1, rs2, imm),
             Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
-            Instruction::System(_) => return false,
+            Instruction::Ebreak => (),
         }
-        true
     }
 }

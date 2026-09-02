@@ -1,4 +1,4 @@
-use crate::cli::command::Command;
+use crate::cli::command::Executable;
 use crate::language::instruction::Instruction;
 use memory::Memory;
 
@@ -34,9 +34,9 @@ impl Processor {
         };
     }
 
-    pub fn execute(&mut self, command: Command) {
+    pub fn execute(&mut self, command: Executable) {
         match command {
-            Command::Step(n) => {
+            Executable::Step(n) => {
                 for i in 0..n {
                     let instr = self.step();
                     if let Some(instr) = instr {
@@ -44,15 +44,14 @@ impl Processor {
                     }
                 }
             }
-            Command::Run => self.run(),
-            Command::Output => println!("{}", self.memory.flush()),
-            Command::Memory => println!("{}", self.memory),
-            Command::Registers => println!("{:?}", self.registers),
-            Command::All => {
+            Executable::Run => self.run(),
+            Executable::Output => println!("{}", self.memory.flush()),
+            Executable::Memory => println!("{}", self.memory),
+            Executable::Registers => println!("{:?}", self.registers),
+            Executable::All => {
                 println!("{}", self.memory);
                 println!("{:?}", self.registers);
             }
-            _ => unreachable!(),
         }
     }
 
@@ -67,8 +66,7 @@ impl Processor {
     fn run(&mut self) {
         loop {
             if let Some(instr) = self.step() {
-                // TODO: might not only be ebreak
-                if let Instruction::System(_) = instr {
+                if let Instruction::Ebreak = instr {
                     return;
                 }
             }

@@ -76,9 +76,3 @@ pub enum UType {
     Lui,
     Auipc,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
-#[strum(serialize_all = "lowercase")]
-pub enum System {
-    Ebreak,
-}

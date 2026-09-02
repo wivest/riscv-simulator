@@ -92,7 +92,7 @@ fn utype<'src>(
 }
 
 fn system<'src>() -> impl StrParser<'src, Instruction<Immediate<'src>, Offset<'src>>> {
-    let ebreak = just("ebreak").map(|_| Instruction::System(System::Ebreak));
+    let ebreak = just("ebreak").map(|_| Instruction::Ebreak);
 
     choice((ebreak,))
 }
