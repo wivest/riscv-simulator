@@ -4,6 +4,7 @@ use processor::Processor;
 use std::fs::OpenOptions;
 use std::io::{Error, Read};
 
+use crate::cli::command::Command;
 use crate::linker::Linker;
 
 mod language {
@@ -13,6 +14,7 @@ mod language {
     pub mod token;
     pub mod word;
 }
+mod cli;
 mod linker;
 mod parser;
 mod processor;
@@ -42,9 +44,14 @@ fn main() {
                     linker.import_section(sect);
                 }
                 let mut proc = Processor::new(RESET, linker.link());
-                proc.execute();
-                println!("{}", proc.memory);
-                println!("{}", proc.memory.flush());
+                loop {
+                    let com = cli::get_command();
+                    match com {
+                        Command::Help => println!("TODO help"),
+                        Command::Quit => return,
+                        com => proc.execute(com),
+                    }
+                }
             }
             Err(errors) => {
                 for err in errors {
