@@ -1,14 +1,15 @@
 use crate::cli::command::Executable;
 use crate::language::instruction::Instruction;
 use memory::Memory;
+use terminal_size::{Width, terminal_size};
 
 pub mod execute;
 pub mod memory;
 
 pub struct Processor {
     pub pc: u32,
-    pub memory: Memory<i32, i32>,
     registers: [i32; 32],
+    memory: Memory<i32, i32>,
 }
 
 impl Processor {
@@ -47,10 +48,10 @@ impl Processor {
             Executable::Run => self.run(),
             Executable::Output => println!("{}", self.memory.flush()),
             Executable::Memory => println!("{}", self.memory),
-            Executable::Registers => println!("{:?}", self.registers),
+            Executable::Registers => println!("{}", self.fmt_reg()),
             Executable::All => {
                 println!("{}", self.memory);
-                println!("{:?}", self.registers);
+                println!("{}", self.fmt_reg());
             }
         }
     }
@@ -71,5 +72,32 @@ impl Processor {
                 }
             }
         }
+    }
+
+    fn fmt_reg(&self) -> String {
+        const SEP: usize = 3;
+        const ENTRY: usize = 23;
+        const NAMES: [&str; 32] = [
+            "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0/fp", "s1", "a0", "a1", "a2",
+            "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10",
+            "s11", "t3", "t4", "t5", "t6",
+        ];
+
+        let width = terminal_size().map(|(Width(w), _)| w).unwrap_or(80) as usize;
+        let columns = ((width + SEP) / (ENTRY + SEP)).clamp(1, 4);
+
+        let mut acc = String::new();
+        acc += &format!("pc: {:#010x}\n", self.pc);
+        for (i, val) in self.registers.iter().enumerate() {
+            acc += &format!("x{i:<2} {:<7}: {val:#010x}", format!("({})", NAMES[i]));
+            match (i + 1) % columns {
+                0 => acc += "\n",
+                _ => acc += " | ",
+            }
+        }
+        if acc.ends_with("\n") {
+            acc.pop();
+        }
+        acc
     }
 }

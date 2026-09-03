@@ -28,7 +28,7 @@ impl Instruction<i32, i32> {
                 imm,
             } => name.execute(cpu, rs1, rs2, imm),
             Instruction::UType { name, rd, imm } => name.execute(cpu, rd, imm),
-            Instruction::Ebreak => (),
+            Instruction::Ebreak => cpu.pc += 4,
         }
     }
 }
