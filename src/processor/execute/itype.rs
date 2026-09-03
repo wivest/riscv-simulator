@@ -56,4 +56,27 @@ impl IType {
         }
         cpu.pc += 4;
     }
+
+    pub fn opcode(&self) -> (u32, u32) {
+        match self {
+            // arithmetic
+            IType::Addi => (0b0010011, 0x0),
+            // bitwise logic
+            IType::Andi => (0b0010011, 0x7),
+            IType::Ori => (0b0010011, 0x6),
+            IType::Xori => (0b0010011, 0x4),
+            // shift
+            IType::Slli => (0b0010011, 0x1),
+            IType::Srli => (0b0010011, 0x5),
+            IType::Srai => (0b0010011, 0x5), // ignoring immediate
+            // load
+            IType::Lw => (0b0000011, 0x2),
+            IType::Lh => (0b0000011, 0x1),
+            IType::Lhu => (0b0000011, 0x5),
+            IType::Lb => (0b0000011, 0x0),
+            IType::Lbu => (0b0000011, 0x4),
+            // jump
+            IType::Jalr => (0b1100111, 0x0),
+        }
+    }
 }

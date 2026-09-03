@@ -9,7 +9,7 @@ pub enum Word<I, O> {
 impl std::fmt::Display for Word<i32, i32> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Self::Instruction(instr) => write!(f, "{instr}"),
+            Self::Instruction(instr) => write!(f, "{:08x} | {instr}", instr.encode()),
             Self::Value(value) => write!(f, "{value:08x}"),
         }
     }

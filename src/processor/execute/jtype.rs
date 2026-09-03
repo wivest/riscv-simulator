@@ -10,4 +10,10 @@ impl JType {
             }
         }
     }
+
+    pub fn opcode(&self) -> u32 {
+        match self {
+            JType::Jal => 0b1101111,
+        }
+    }
 }

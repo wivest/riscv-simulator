@@ -51,4 +51,15 @@ impl BType {
             }
         }
     }
+
+    pub fn opcode(&self) -> (u32, u32) {
+        match self {
+            BType::Beq => (0b1100011, 0x0),
+            BType::Bne => (0b1100011, 0x1),
+            BType::Blt => (0b1100011, 0x4),
+            BType::Bltu => (0b1100011, 0x6),
+            BType::Bge => (0b1100011, 0x5),
+            BType::Bgeu => (0b1100011, 0x7),
+        }
+    }
 }

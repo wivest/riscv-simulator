@@ -26,4 +26,26 @@ impl RType {
         }
         cpu.pc += 4;
     }
+
+    pub fn opcode(&self) -> (u32, u32, u32) {
+        match self {
+            // arithmetic
+            RType::Add => (0b0110011, 0x0, 0x00),
+            RType::Sub => (0b0110011, 0x0, 0x20),
+            RType::Mul => (0b0110011, 0x0, 0x00),
+            RType::Mulh => (0b0110011, 0x1, 0x01),
+            RType::Mulhu => (0b0110011, 0x3, 0x01),
+            RType::Mulhsu => (0b0110011, 0x2, 0x01),
+            RType::Div => (0b0110011, 0x4, 0x01),
+            RType::Rem => (0b0110011, 0x6, 0x01),
+            // bitwise logic
+            RType::And => (0b0110011, 0x7, 0x00),
+            RType::Or => (0b0110011, 0x6, 0x00),
+            RType::Xor => (0b0110011, 0x4, 0x00),
+            // shift
+            RType::Sll => (0b0110011, 0x1, 0x00),
+            RType::Srl => (0b0110011, 0x5, 0x00),
+            RType::Sra => (0b0110011, 0x5, 0x20),
+        }
+    }
 }

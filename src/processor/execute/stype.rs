@@ -29,4 +29,12 @@ impl SType {
         }
         cpu.pc += 4;
     }
+
+    pub fn opcode(&self) -> (u32, u32) {
+        match self {
+            SType::Sb => (0b0100011, 0x0),
+            SType::Sh => (0b0100011, 0x1),
+            SType::Sw => (0b0100011, 0x2),
+        }
+    }
 }

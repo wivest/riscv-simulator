@@ -9,4 +9,11 @@ impl UType {
         }
         cpu.pc += 4;
     }
+
+    pub fn opcode(&self) -> u32 {
+        match self {
+            UType::Lui => 0b0110111,
+            UType::Auipc => 0b0010111,
+        }
+    }
 }
