@@ -102,11 +102,21 @@ impl std::fmt::Display for Memory<i32, i32> {
 
         let chunks = words.chunk_by(|&(&a, _), &(&b, _)| a % 2 == 0 && b % 2 == 1);
         for items in chunks {
-            write!(f, "{:#010x}:\t{}", items[0].0 * 4, items[0].1.encode())?;
+            let mut bytes = Vec::new();
+            write!(f, "{:#010x}:\t{}", items[0].0 * 4, items[0].1.split())?;
+            bytes.extend(items[0].1.encode().to_le_bytes());
             for &(_, word) in items.iter().skip(1) {
-                write!(f, "  {}", word.encode())?
+                write!(f, "  {}", word.split())?;
+                bytes.extend(word.encode().to_le_bytes());
             }
-            writeln!(f)?
+            let chars = bytes
+                .iter()
+                .map(|b| match b.is_ascii_graphic() {
+                    true => *b as char,
+                    false => '.',
+                })
+                .collect::<String>();
+            writeln!(f, "  {}", chars)?
         }
 
         std::fmt::Result::Ok(())

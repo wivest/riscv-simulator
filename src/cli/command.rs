@@ -32,7 +32,7 @@ impl Command {
             step(),
             just("/run").to(Command::Exec(Executable::Run)),
             just("/out").to(Command::Exec(Executable::Output)),
-            just("/mem").to(Command::Exec(Executable::Memory)),
+            just("/hex").to(Command::Exec(Executable::Memory)),
             just("/reg").to(Command::Exec(Executable::Registers)),
             just("/obj").to(Command::Exec(Executable::Instructions)),
             choice((just("/quit"), just("/exit"))).to(Command::Quit),
