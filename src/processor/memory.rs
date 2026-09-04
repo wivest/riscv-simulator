@@ -1,6 +1,6 @@
 use crate::language::{instruction::Instruction, word::Word};
-
 use std::collections::HashMap;
+use terminal_size::{Width, terminal_size};
 
 const PRINT_BASE: u32 = 0xffffc000;
 const STATUS_OFFSET: u32 = 0x0008;
@@ -97,26 +97,37 @@ impl Memory<i32, i32> {
 
 impl std::fmt::Display for Memory<i32, i32> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut words = self.content.iter().collect::<Vec<_>>();
-        words.sort_by_key(|&(k, _)| *k);
+        const ADDR_FMT: usize = "0x12345678".len() + ":     ".len() + "  ".len();
+        const SEP: usize = "  ".len();
+        const ENTRY: usize = "00 00 00 00".len() + "....".len();
 
-        let chunks = words.chunk_by(|&(&a, _), &(&b, _)| a % 2 == 0 && b % 2 == 1);
-        for items in chunks {
-            let mut bytes = Vec::new();
-            write!(f, "{:#010x}:\t{}", items[0].0 * 4, items[0].1.split())?;
-            bytes.extend(items[0].1.encode().to_le_bytes());
-            for &(_, word) in items.iter().skip(1) {
-                write!(f, "  {}", word.split())?;
-                bytes.extend(word.encode().to_le_bytes());
+        let width = terminal_size().map(|(Width(w), _)| w).unwrap_or(80) as usize;
+        let cols = ((width - ADDR_FMT + SEP) / (ENTRY + SEP)).clamp(1, 4) as u32;
+
+        let mut keys: Vec<u32> = self.content.keys().copied().collect();
+        keys.sort();
+        let rows = keys.chunk_by(|a, b| a / cols == b / cols);
+
+        for row in rows {
+            let base = row[0] - row[0] % cols;
+            write!(f, "{:#010x}:     ", base * 4)?;
+
+            for i in 0..cols {
+                let word = self.content.get(&(base + i)).unwrap_or(&Word::Value(0));
+                write!(f, "{}  ", word.split())?;
             }
-            let chars = bytes
-                .iter()
-                .map(|b| match b.is_ascii_graphic() {
-                    true => *b as char,
+
+            for i in 0..cols {
+                let default = Word::Value(0);
+                let word = self.content.get(&(base + i)).unwrap_or(&default).encode();
+                let ascii = word.to_le_bytes().map(|b| match b.is_ascii_graphic() {
+                    true => b as char,
                     false => '.',
-                })
-                .collect::<String>();
-            writeln!(f, "  {}", chars)?
+                });
+                write!(f, "{}", String::from_iter(ascii))?;
+            }
+
+            writeln!(f)?;
         }
 
         std::fmt::Result::Ok(())
