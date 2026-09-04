@@ -14,7 +14,7 @@ pub enum Executable {
     Output,
     Memory,
     Registers,
-    All,
+    Instructions,
 }
 
 fn step<'src>() -> impl Parser<'src, &'src str, Command> {
@@ -34,7 +34,7 @@ impl Command {
             just("/out").to(Command::Exec(Executable::Output)),
             just("/mem").to(Command::Exec(Executable::Memory)),
             just("/reg").to(Command::Exec(Executable::Registers)),
-            just("/all").to(Command::Exec(Executable::All)),
+            just("/obj").to(Command::Exec(Executable::Instructions)),
             choice((just("/quit"), just("/exit"))).to(Command::Quit),
             just("/help").to(Command::Help),
         ))

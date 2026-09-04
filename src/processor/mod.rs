@@ -47,12 +47,9 @@ impl Processor {
             }
             Executable::Run => self.run(),
             Executable::Output => println!("{}", self.memory.flush()),
-            Executable::Memory => println!("{}", self.memory),
+            Executable::Memory => print!("{}", self.memory),
             Executable::Registers => println!("{}", self.fmt_reg()),
-            Executable::All => {
-                println!("{}", self.memory);
-                println!("{}", self.fmt_reg());
-            }
+            Executable::Instructions => print!("{}", self.memory.list_instr()),
         }
     }
 

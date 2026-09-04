@@ -23,14 +23,6 @@ impl<I: Copy, O: Copy> Memory<I, O> {
         result
     }
 
-    pub fn get(&self, addr: u32) -> Option<u8> {
-        let word = match self.content.get(&(addr / 4))? {
-            Word::Instruction(_) => todo!(),
-            Word::Value(v) => *v,
-        };
-        Some(word.to_le_bytes()[addr as usize % 4])
-    }
-
     fn mmio(&mut self, addr: u32, value: u8) -> bool {
         if addr != PRINT_BASE + DATA_OFFSET {
             false
@@ -73,13 +65,50 @@ impl<I: Copy, O: Copy> Memory<I, O> {
     }
 }
 
+impl Memory<i32, i32> {
+    pub fn get(&self, addr: u32) -> Option<u8> {
+        let word = match self.content.get(&(addr / 4))? {
+            Word::Instruction(instr) => instr.encode(),
+            Word::Value(v) => *v,
+        };
+        Some(word.to_le_bytes()[addr as usize % 4])
+    }
+
+    pub fn list_instr(&self) -> String {
+        let mut words = self
+            .content
+            .iter()
+            .filter(|&(_, word)| {
+                if let Word::Instruction(_) = word {
+                    true
+                } else {
+                    false
+                }
+            })
+            .collect::<Vec<_>>();
+        words.sort_by_key(|&(k, _)| *k);
+        let mut acc = String::new();
+        for (div4, word) in words {
+            acc += &format!("{:#010x}:\t{}\n", div4 * 4, word);
+        }
+        acc
+    }
+}
+
 impl std::fmt::Display for Memory<i32, i32> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut words = self.content.iter().collect::<Vec<_>>();
         words.sort_by_key(|&(k, _)| *k);
-        for (div4, word) in words {
-            writeln!(f, "{:#010x}: {}", div4 * 4, word)?
+
+        let chunks = words.chunk_by(|&(&a, _), &(&b, _)| a % 2 == 0 && b % 2 == 1);
+        for items in chunks {
+            write!(f, "{:#010x}:\t{}", items[0].0 * 4, items[0].1.encode())?;
+            for &(_, word) in items.iter().skip(1) {
+                write!(f, "  {}", word.encode())?
+            }
+            writeln!(f)?
         }
+
         std::fmt::Result::Ok(())
     }
 }
