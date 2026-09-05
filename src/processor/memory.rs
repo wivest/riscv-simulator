@@ -74,22 +74,23 @@ impl Memory<i32, i32> {
         Some(word.to_le_bytes()[addr as usize % 4])
     }
 
+    pub fn word(&self, addr: u32) -> &Word<i32, i32> {
+        self.content.get(&(addr / 4)).unwrap_or(&Word::Value(0))
+    }
+
     pub fn list_instr(&self) -> String {
         let mut words = self
             .content
             .iter()
-            .filter(|&(_, word)| {
-                if let Word::Instruction(_) = word {
-                    true
-                } else {
-                    false
-                }
+            .filter(|&(_, word)| match word {
+                Word::Instruction(_) => true,
+                _ => false,
             })
             .collect::<Vec<_>>();
         words.sort_by_key(|&(k, _)| *k);
         let mut acc = String::new();
         for (div4, word) in words {
-            acc += &format!("{:#010x}:\t{}\n", div4 * 4, word);
+            acc += &format!("{:#010x}:\t{word}\n", div4 * 4);
         }
         acc
     }
@@ -112,20 +113,13 @@ impl std::fmt::Display for Memory<i32, i32> {
             let base = row[0] - row[0] % cols;
             write!(f, "{:#010x}:     ", base * 4)?;
 
+            let mut ascii = String::new();
             for i in 0..cols {
                 let word = self.content.get(&(base + i)).unwrap_or(&Word::Value(0));
                 write!(f, "{}  ", word.split())?;
+                ascii += &word.ascii();
             }
-
-            for i in 0..cols {
-                let default = Word::Value(0);
-                let word = self.content.get(&(base + i)).unwrap_or(&default).encode();
-                let ascii = word.to_le_bytes().map(|b| match b.is_ascii_graphic() {
-                    true => b as char,
-                    false => '.',
-                });
-                write!(f, "{}", String::from_iter(ascii))?;
-            }
+            write!(f, "{}", ascii)?;
 
             writeln!(f)?;
         }

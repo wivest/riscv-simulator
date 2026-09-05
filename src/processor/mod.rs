@@ -37,11 +37,18 @@ impl Processor {
 
     pub fn execute(&mut self, command: Executable) {
         match command {
+            Executable::Goto(n) => self.pc = n,
+            Executable::Show(addr) => {
+                println!("[Address {addr:#010x}]    {}", self.memory.word(addr))
+            }
             Executable::Step(n) => {
                 for i in 0..n {
                     let instr = self.step();
                     if let Some(instr) = instr {
                         println!("[Step {} at {:#010x}]: {instr}", i + 1, self.pc);
+                    } else {
+                        println!("Invalid instruction at [PC {:#010x}]!", self.pc);
+                        break;
                     }
                 }
             }
@@ -65,8 +72,11 @@ impl Processor {
         loop {
             if let Some(instr) = self.step() {
                 if let Instruction::Ebreak = instr {
-                    return;
+                    break;
                 }
+            } else {
+                println!("Invalid instruction at [PC {:#010x}]!", self.pc);
+                break;
             }
         }
     }
@@ -84,7 +94,7 @@ impl Processor {
         let columns = ((width + SEP) / (ENTRY + SEP)).clamp(1, 4);
 
         let mut acc = String::new();
-        acc += &format!("pc: {:#010x}\n", self.pc);
+        acc += &format!("pc         : {:#010x}\n", self.pc);
         for (i, val) in self.registers.iter().enumerate() {
             acc += &format!("x{i:<2} {:<7}: {val:#010x}", format!("({})", NAMES[i]));
             match (i + 1) % columns {

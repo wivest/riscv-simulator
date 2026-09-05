@@ -8,7 +8,7 @@ use chumsky::prelude::*;
 use real::real_instructions;
 use section::Section;
 
-mod common;
+pub mod common;
 mod directive;
 pub mod section;
 pub mod token {

@@ -20,13 +20,22 @@ impl Word<i32, i32> {
             .map(|b| format!("{b:02x}"))
             .join(" ")
     }
+
+    pub fn ascii(&self) -> String {
+        let bytes = self.encode().to_le_bytes();
+        let ascii = bytes.map(|b| match b.is_ascii_graphic() {
+            true => b as char,
+            false => '.',
+        });
+        String::from_iter(ascii)
+    }
 }
 
 impl std::fmt::Display for Word<i32, i32> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Self::Instruction(instr) => write!(f, "{}\t{instr}", self.split()),
-            Self::Value(_) => write!(f, "{}", self.split()),
+            Self::Value(_) => write!(f, "{}\t{}", self.split(), self.ascii()),
         }
     }
 }

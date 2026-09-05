@@ -8,6 +8,24 @@ use std::io::Write;
 pub mod command;
 
 const RESET: u32 = 0x200;
+const HELP: &str = "USAGE:
+    <command> [arg]
+
+EXECUTION CONTROLS:
+    run             Run execution until ebreak or error
+    step <n>        Step execution by <n> instructions
+    goto <addr>     Move program counter to <addr>
+
+INSPECTION & STATE:
+    hex             Display all memory in hex format
+    obj             Print all instructions
+    reg             Print registers and pc
+    mem <addr>      Display memory at <addr>
+    out             Print terminal output
+
+UTILITY & SYSTEM:
+    help            Display this help message
+    quit, exit      Exit the simulator";
 
 pub fn load<'a>(content: &'a String) -> Result<Processor, Vec<Rich<'a, char>>> {
     let result = parser::program((RESET, 0, 0, 0))
@@ -27,9 +45,10 @@ pub fn load<'a>(content: &'a String) -> Result<Processor, Vec<Rich<'a, char>>> {
 }
 
 pub fn run_repl(proc: &mut Processor) {
+    println!("Type \"help\" to get more info.");
     loop {
         match get_command() {
-            Command::Help => println!("TODO help"),
+            Command::Help => println!("{HELP}"),
             Command::Quit => return,
             Command::Exec(com) => proc.execute(com),
         }
