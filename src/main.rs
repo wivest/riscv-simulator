@@ -5,17 +5,7 @@ use std::{
     io::{Error, Read},
 };
 
-mod language {
-    pub mod directive;
-    pub mod instruction;
-    pub mod names;
-    pub mod token;
-    pub mod word;
-}
 mod cli;
-mod linker;
-mod parser;
-mod processor;
 
 fn open_file(path: &str) -> Result<String, Error> {
     let mut file = OpenOptions::new().read(true).open(path)?;

@@ -1,23 +1,12 @@
-use crate::parser::{StrParser, common::number};
 use chumsky::prelude::*;
+use rvsim::parser::{StrParser, common::number};
+use rvsim::processor::command::Executable;
 
 #[derive(Clone)]
 pub enum Command {
     Exec(Executable),
     Quit,
     Help,
-}
-
-#[derive(Clone)]
-pub enum Executable {
-    Goto(u32),
-    Show(u32),
-    Step(u32),
-    Run,
-    Output,
-    Memory,
-    Registers,
-    Instructions,
 }
 
 fn with_arg<'src>(name: &'src str) -> impl StrParser<'src, u32> {

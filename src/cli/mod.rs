@@ -1,8 +1,6 @@
-use crate::linker::Linker;
-use crate::parser;
-use crate::processor::Processor;
 use chumsky::{Parser, error::Rich};
 use command::Command;
+use rvsim::{linker::Linker, parser, processor::Processor};
 use std::io::Write;
 
 pub mod command;

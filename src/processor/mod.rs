@@ -1,8 +1,9 @@
-use crate::cli::command::Executable;
 use crate::language::instruction::Instruction;
+use command::Executable;
 use memory::Memory;
 use terminal_size::{Width, terminal_size};
 
+pub mod command;
 pub mod execute;
 pub mod memory;
 
