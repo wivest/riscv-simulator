@@ -54,12 +54,12 @@ impl<'src> Program<'src> {
 }
 
 fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
+    let labels = token::label_def().map(|l| Line::Label(l));
     let real_ins = real_instructions().map(|r| Line::Instruction(r));
     let pseudo_ins = pseudo::pseudo_instructions().map(|p| Line::Pseudo(p));
-    let labels = token::label_def().map(|l| Line::Label(l));
     let dirs = directive::dirs().map(|d| Line::Directive(d));
     let comments = common::comment().map(|_| Line::Empty);
-    let line = choice((real_ins, pseudo_ins, labels, dirs, comments));
+    let line = choice((labels, real_ins, pseudo_ins, dirs, comments));
 
     line.padded()
         .recover_with(skip_then_retry_until(any().ignored(), just('\n').ignored()))

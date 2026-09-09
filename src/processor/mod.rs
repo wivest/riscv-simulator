@@ -43,11 +43,11 @@ impl Processor {
             }
             Executable::Step(n) => {
                 for i in 0..n {
-                    let instr = self.step();
+                    let (pc, instr) = self.step();
                     if let Some(instr) = instr {
-                        println!("[Step {} at {:#010x}]: {instr}", i + 1, self.pc);
+                        println!("[Step {} at {pc:#010x}]: {instr}", i + 1);
                     } else {
-                        println!("Invalid instruction at [PC {:#010x}]!", self.pc);
+                        println!("Invalid instruction at [PC {pc:#010x}]!");
                         break;
                     }
                 }
@@ -60,17 +60,18 @@ impl Processor {
         }
     }
 
-    fn step(&mut self) -> Option<Instruction<i32, i32>> {
+    fn step(&mut self) -> (u32, Option<Instruction<i32, i32>>) {
+        let pc = self.pc;
         let Some(instr) = self.memory.load_instr(self.pc) else {
-            return None;
+            return (pc, None);
         };
         instr.execute(self);
-        Some(instr)
+        (pc, Some(instr))
     }
 
     fn run(&mut self) {
         loop {
-            if let Some(instr) = self.step() {
+            if let (_, Some(instr)) = self.step() {
                 if let Instruction::Ebreak = instr {
                     break;
                 }

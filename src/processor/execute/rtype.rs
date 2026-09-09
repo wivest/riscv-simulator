@@ -1,15 +1,18 @@
 use super::RType;
 use crate::processor::Processor;
+use std::num::Wrapping;
 
 impl RType {
     pub fn execute(&self, cpu: &mut Processor, rd: u32, rs1: u32, rs2: u32) {
+        let ws1 = Wrapping(cpu.get_reg(rs1));
+        let ws2 = Wrapping(cpu.get_reg(rs2));
         let s1 = cpu.get_reg(rs1);
         let s2 = cpu.get_reg(rs2);
         match self {
             // arithmetic
-            RType::Add => cpu.set_reg(rd, s1 + s2),
-            RType::Sub => cpu.set_reg(rd, s1 - s2),
-            RType::Mul => cpu.set_reg(rd, s1 * s2),
+            RType::Add => cpu.set_reg(rd, (ws1 + ws2).0),
+            RType::Sub => cpu.set_reg(rd, (ws1 - ws2).0),
+            RType::Mul => cpu.set_reg(rd, (ws1 * ws2).0),
             RType::Mulh => cpu.set_reg(rd, ((s1 as i64) * (s2 as i64) >> 32) as i32),
             RType::Mulhu => cpu.set_reg(rd, ((s1 as u64) * (s2 as u64) >> 32) as i32),
             RType::Mulhsu => cpu.set_reg(rd, ((s1 as i64) * ((s2 as u64) as i64) >> 32) as i32),

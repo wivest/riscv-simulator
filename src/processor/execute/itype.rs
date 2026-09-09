@@ -6,15 +6,15 @@ impl IType {
         let src = cpu.get_reg(rs);
         match self {
             // arithmetic
-            IType::Addi => cpu.set_reg(rd, src + imm),
+            IType::Addi => cpu.set_reg(rd, src.wrapping_add(imm)),
             // bitwise logic
             IType::Andi => cpu.set_reg(rd, src & imm),
             IType::Ori => cpu.set_reg(rd, src | imm),
             IType::Xori => cpu.set_reg(rd, src ^ imm),
             // shift
-            IType::Slli => cpu.set_reg(rd, src << imm),
-            IType::Srli => cpu.set_reg(rd, ((src as u32) >> (imm as u32)) as i32),
-            IType::Srai => cpu.set_reg(rd, src >> imm),
+            IType::Slli => cpu.set_reg(rd, src << (imm & 0x1f)), // 5 lower bits
+            IType::Srli => cpu.set_reg(rd, ((src as u32) >> ((imm & 0x1f) as u32)) as i32),
+            IType::Srai => cpu.set_reg(rd, src >> (imm & 0x1f)),
             // load
             IType::Lw => {
                 let addr = src + imm;
@@ -35,7 +35,7 @@ impl IType {
                 let addr = src + imm;
                 let low = cpu.memory.get(addr as u32).unwrap_or(0);
                 let high = cpu.memory.get(addr as u32 + 1).unwrap_or(0);
-                cpu.set_reg(rd, ((high as u32) << 8 + (low as u32)) as i32);
+                cpu.set_reg(rd, (((high as u32) << 8) + (low as u32)) as i32);
             }
             IType::Lb => {
                 let addr = src + imm;
