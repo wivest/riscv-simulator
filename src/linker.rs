@@ -38,33 +38,39 @@ impl<'src> Linker<'src> {
         self.equs.extend(sect.equs);
     }
 
-    pub fn link<'a>(self) -> Result<Memory<i32, i32>, Rich<'a, char>> {
-        let mut result = Memory::from(
-            self.memory
-                .into_iter()
-                .map(|(div4, word)| {
-                    let word = match word {
-                        Word::Instruction(i) => {
-                            Word::Instruction(translate_instr(i, div4 * 4, &self.defs, &self.equs)?)
-                        }
-                        Word::Value(v) => Word::Value(v),
-                    };
-                    Ok((div4, word))
-                })
-                .collect::<Result<_, Rich<'a, char>>>()?,
-        );
-        for (at, b, link) in self.links {
-            let addr = match self.defs.get(&Definition(&link)) {
-                Some(&addr) => addr,
-                None => return Err(Rich::custom(SimpleSpan::from(0..0), format!("{link}"))),
+    pub fn link<'a>(self) -> Result<Memory<i32, i32>, Vec<Rich<'a, char>>> {
+        let mut oks = HashMap::new();
+        let mut errs = Vec::<Rich<'a, char>>::new();
+
+        for (div4, word) in self.memory {
+            let word = match word {
+                Word::Instruction(i) => match link_instr(i, div4 * 4, &self.defs, &self.equs) {
+                    Ok(ins) => Word::Instruction(ins),
+                    Err(e) => {
+                        errs.push(e);
+                        continue;
+                    }
+                },
+                Word::Value(v) => Word::Value(v),
             };
-            result.set(at, addr.to_le_bytes()[b as usize]);
+            oks.insert(div4, word);
         }
-        Ok(result)
+
+        let result = if errs.is_empty() { Ok(oks) } else { Err(errs) };
+
+        let mut mem = Memory::from(result?);
+        let mut errs = Vec::new();
+        for (at, b, link) in self.links {
+            match self.defs.get(&Definition(&link)) {
+                Some(&addr) => mem.set(at, addr.to_le_bytes()[b as usize]),
+                None => errs.push(Rich::custom(SimpleSpan::from(0..0), format!("{link}"))),
+            };
+        }
+        if errs.is_empty() { Ok(mem) } else { Err(errs) }
     }
 }
 
-pub fn translate_instr<'a>(
+pub fn link_instr<'a>(
     instr: Instruction<Immediate, Offset>,
     addr: u32,
     defs: &HashMap<Definition, u32>,
