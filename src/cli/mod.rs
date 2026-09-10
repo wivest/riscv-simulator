@@ -39,7 +39,7 @@ pub fn load<'a>(content: &'a String) -> Result<Processor, Vec<Rich<'a, char>>> {
     for sect in vec![program.text, program.data, program.rodata, program.bss] {
         linker.import_section(sect);
     }
-    Ok(Processor::new(RESET, linker.link()))
+    Ok(Processor::new(RESET, linker.link().map_err(|e| vec![e])?))
 }
 
 pub fn run_repl(proc: &mut Processor) {

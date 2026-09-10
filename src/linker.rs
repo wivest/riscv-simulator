@@ -1,3 +1,5 @@
+use chumsky::{error::Rich, span::SimpleSpan};
+
 use crate::language::{
     instruction::Instruction::{self, *},
     token::{Definition, Immediate, Offset, Reference},
@@ -36,54 +38,64 @@ impl<'src> Linker<'src> {
         self.equs.extend(sect.equs);
     }
 
-    pub fn link(self) -> Memory<i32, i32> {
+    pub fn link<'a>(self) -> Result<Memory<i32, i32>, Rich<'a, char>> {
         let mut result = Memory::from(
             self.memory
                 .into_iter()
                 .map(|(div4, word)| {
                     let word = match word {
                         Word::Instruction(i) => {
-                            Word::Instruction(translate_instr(i, div4 * 4, &self.defs, &self.equs))
+                            Word::Instruction(translate_instr(i, div4 * 4, &self.defs, &self.equs)?)
                         }
                         Word::Value(v) => Word::Value(v),
                     };
-                    (div4, word)
+                    Ok((div4, word))
                 })
-                .collect(),
+                .collect::<Result<_, Rich<'a, char>>>()?,
         );
         for (at, b, link) in self.links {
-            let addr = *self.defs.get(&Definition(&link)).unwrap();
+            let addr = match self.defs.get(&Definition(&link)) {
+                Some(&addr) => addr,
+                None => return Err(Rich::custom(SimpleSpan::from(0..0), format!("{link}"))),
+            };
             result.set(at, addr.to_le_bytes()[b as usize]);
         }
-        result
+        Ok(result)
     }
 }
 
-pub fn translate_instr(
+pub fn translate_instr<'a>(
     instr: Instruction<Immediate, Offset>,
     addr: u32,
     defs: &HashMap<Definition, u32>,
     equs: &HashMap<String, u32>,
-) -> Instruction<i32, i32> {
-    let resolve = |l| *defs.get(&Definition(l)).unwrap_or(&0) as i32;
-    let resolve_rel = |l| resolve(l) - addr as i32;
+) -> Result<Instruction<i32, i32>, Rich<'a, char>> {
+    let resolve = |l| match defs.get(&Definition(l)) {
+        Some(&value) => Ok(value as i32),
+        None => return Err(Rich::custom(SimpleSpan::from(0..0), format!("{l}"))),
+    };
+    let load_const = |s| match equs.get(s) {
+        Some(&c) => Ok(c as i32),
+        None => Err(Rich::custom(SimpleSpan::from(0..0), format!("{s}"))),
+    };
+    let resolve_rel = |l| Ok::<i32, Rich<'a, char>>(resolve(l)? - addr as i32);
     let calc_offset = |offset| match offset {
-        Offset::Label(Reference(l)) => resolve(l) - addr as i32,
-        Offset::Value(v) => v,
+        Offset::Label(Reference(l)) => resolve_rel(l),
+        Offset::Value(v) => Ok(v),
     };
     let calc_imm = |imm| match imm {
-        Immediate::Value(v) => v,
-        Immediate::Upper(Reference(l)) => resolve(l) >> 12,
-        Immediate::UpperPseudo(Reference(l)) => (resolve(l) + 0x800) >> 12,
-        Immediate::Lower(Reference(l)) => resolve(l) << 20 >> 20,
-        Immediate::PcrelHi(Reference(l)) => resolve_rel(l) + 0x800 >> 12,
-        Immediate::PcrelLo(Reference(l)) => (resolve_rel(l) << 20 >> 20) + 4, // +4 only comes from call/tail (change?)
-        Immediate::EquUpper(s) => (*equs.get(s).unwrap() as i32 + 0x800) >> 12,
-        Immediate::Equ20(s) => (*equs.get(s).unwrap() as i32) << 12 >> 12,
-        Immediate::Equ12(s) => (*equs.get(s).unwrap() as i32) << 20 >> 20,
+        Immediate::Value(v) => Ok::<i32, Rich<'a, char>>(v),
+        Immediate::Upper(Reference(l)) => Ok(resolve(l)? >> 12),
+        Immediate::UpperPseudo(Reference(l)) => Ok((resolve(l)? + 0x800) >> 12),
+        Immediate::Lower(Reference(l)) => Ok(resolve(l)? << 20 >> 20),
+        Immediate::PcrelHi(Reference(l)) => Ok(resolve_rel(l)? + 0x800 >> 12),
+        Immediate::PcrelLo(Reference(l)) => Ok((resolve_rel(l)? << 20 >> 20) + 4), // +4 only comes from call/tail (change?)
+        Immediate::EquUpper(s) => Ok((load_const(s)? + 0x800) >> 12),
+        Immediate::Equ20(s) => Ok(load_const(s)? << 12 >> 12),
+        Immediate::Equ12(s) => Ok(load_const(s)? << 20 >> 20),
     };
 
-    match instr {
+    Ok(match instr {
         BType {
             name,
             rs1,
@@ -93,18 +105,18 @@ pub fn translate_instr(
             name,
             rs1,
             rs2,
-            offset: calc_offset(offset),
+            offset: calc_offset(offset)?,
         },
         IType { name, rd, rs, imm } => IType {
             name,
             rd,
             rs,
-            imm: calc_imm(imm),
+            imm: calc_imm(imm)?,
         },
         JType { name, rd, imm } => JType {
             name,
             rd,
-            imm: calc_offset(imm),
+            imm: calc_offset(imm)?,
         },
         RType { name, rd, rs1, rs2 } => RType { name, rd, rs1, rs2 },
         SType {
@@ -116,13 +128,13 @@ pub fn translate_instr(
             name,
             rs1,
             rs2,
-            imm: calc_imm(imm),
+            imm: calc_imm(imm)?,
         },
         UType { name, rd, imm } => UType {
             name,
             rd,
-            imm: calc_imm(imm),
+            imm: calc_imm(imm)?,
         },
         Ebreak => Ebreak,
-    }
+    })
 }
