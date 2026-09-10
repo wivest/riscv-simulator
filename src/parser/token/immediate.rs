@@ -1,6 +1,6 @@
 use super::label_ref;
 
-use crate::language::token::{Immediate, Offset};
+use crate::language::token::{Immediate, Offset, Reference};
 use crate::parser::common::*;
 
 pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
@@ -9,7 +9,7 @@ pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label));
-    let equ = text::ident().map(|s| Immediate::Equ12(s));
+    let equ = text::ident().map_with(|s, ext| Immediate::Equ12(Reference(s, ext.span())));
 
     choice((imm, lower, equ)).inline()
 }
@@ -20,7 +20,7 @@ pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Upper(label));
-    let equ = text::ident().map(|s| Immediate::Equ20(s));
+    let equ = text::ident().map_with(|s, ext| Immediate::Equ20(Reference(s, ext.span())));
 
     choice((imm, lower, equ)).inline()
 }
@@ -48,7 +48,10 @@ mod tests {
         let result = immediate12().parse("0x1000");
         assert_eq!(result.has_errors(), true);
         let result = immediate12().parse("%lo(name)");
-        assert_eq!(result.unwrap(), Immediate::Lower(Reference("name")));
+        assert_eq!(
+            result.unwrap(),
+            Immediate::Lower(Reference("name", SimpleSpan::from(4..8)))
+        );
     }
 
     #[test]
@@ -62,7 +65,10 @@ mod tests {
         let result = immediate20().parse("0x100000");
         assert_eq!(result.has_errors(), true);
         let result = immediate20().parse("%hi(name)");
-        assert_eq!(result.unwrap(), Immediate::Upper(Reference("name")));
+        assert_eq!(
+            result.unwrap(),
+            Immediate::Upper(Reference("name", SimpleSpan::from(4..8)))
+        );
     }
 
     #[test]
@@ -76,6 +82,9 @@ mod tests {
         let result = offset(12).parse("0x1000");
         assert_eq!(result.has_errors(), true);
         let result = offset(12).parse("name");
-        assert_eq!(result.unwrap(), Offset::Label(Reference("name")));
+        assert_eq!(
+            result.unwrap(),
+            Offset::Label(Reference("name", SimpleSpan::from(0..4)))
+        );
     }
 }

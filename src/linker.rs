@@ -76,29 +76,38 @@ pub fn link_instr<'a>(
     defs: &HashMap<Definition, u32>,
     equs: &HashMap<String, u32>,
 ) -> Result<Instruction<i32, i32>, Rich<'a, char>> {
-    let resolve = |l| match defs.get(&Definition(l)) {
+    let resolve = |l, span| match defs.get(&Definition(l)) {
         Some(&value) => Ok(value as i32),
-        None => return Err(Rich::custom(SimpleSpan::from(0..0), format!("{l}"))),
+        None => {
+            return Err(Rich::custom(
+                span,
+                format!("Unknown label, define \"{l}:\""),
+            ));
+        }
     };
-    let load_const = |s| match equs.get(s) {
+    let load_const = |s, span| match equs.get(s) {
         Some(&c) => Ok(c as i32),
-        None => Err(Rich::custom(SimpleSpan::from(0..0), format!("{s}"))),
+        None => Err(Rich::custom(
+            span,
+            format!("Unknown identifier, define \".equ {s}, <value>\""),
+        )),
     };
-    let resolve_rel = |l| Ok::<i32, Rich<'a, char>>(resolve(l)? - addr as i32);
+    let resolve_rel = |l, span| Ok::<i32, Rich<'a, char>>(resolve(l, span)? - addr as i32);
+
     let calc_offset = |offset| match offset {
-        Offset::Label(Reference(l)) => resolve_rel(l),
+        Offset::Label(Reference(l, span)) => resolve_rel(l, span),
         Offset::Value(v) => Ok(v),
     };
     let calc_imm = |imm| match imm {
         Immediate::Value(v) => Ok::<i32, Rich<'a, char>>(v),
-        Immediate::Upper(Reference(l)) => Ok(resolve(l)? >> 12),
-        Immediate::UpperPseudo(Reference(l)) => Ok((resolve(l)? + 0x800) >> 12),
-        Immediate::Lower(Reference(l)) => Ok(resolve(l)? << 20 >> 20),
-        Immediate::PcrelHi(Reference(l)) => Ok(resolve_rel(l)? + 0x800 >> 12),
-        Immediate::PcrelLo(Reference(l)) => Ok((resolve_rel(l)? << 20 >> 20) + 4), // +4 only comes from call/tail (change?)
-        Immediate::EquUpper(s) => Ok((load_const(s)? + 0x800) >> 12),
-        Immediate::Equ20(s) => Ok(load_const(s)? << 12 >> 12),
-        Immediate::Equ12(s) => Ok(load_const(s)? << 20 >> 20),
+        Immediate::Upper(Reference(l, s)) => Ok(resolve(l, s)? >> 12),
+        Immediate::UpperPseudo(Reference(l, s)) => Ok((resolve(l, s)? + 0x800) >> 12),
+        Immediate::Lower(Reference(l, s)) => Ok(resolve(l, s)? << 20 >> 20),
+        Immediate::PcrelHi(Reference(l, s)) => Ok(resolve_rel(l, s)? + 0x800 >> 12),
+        Immediate::PcrelLo(Reference(l, s)) => Ok((resolve_rel(l, s)? << 20 >> 20) + 4), // +4 only comes from call/tail (change?)
+        Immediate::EquUpper(Reference(l, s)) => Ok((load_const(l, s)? + 0x800) >> 12),
+        Immediate::Equ20(Reference(l, s)) => Ok(load_const(l, s)? << 12 >> 12),
+        Immediate::Equ12(Reference(l, s)) => Ok(load_const(l, s)? << 20 >> 20),
     };
 
     Ok(match instr {

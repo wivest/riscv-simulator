@@ -1,3 +1,5 @@
+use chumsky::span::SimpleSpan;
+
 // immediate
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Offset<'a> {
@@ -13,13 +15,13 @@ pub enum Immediate<'a> {
     Lower(Reference<'a>),
     PcrelHi(Reference<'a>),
     PcrelLo(Reference<'a>),
-    EquUpper(&'a str),
-    Equ20(&'a str),
-    Equ12(&'a str),
+    EquUpper(Reference<'a>),
+    Equ20(Reference<'a>),
+    Equ12(Reference<'a>),
 }
 
 // label
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Reference<'a>(pub &'a str);
+pub struct Reference<'a>(pub &'a str, pub SimpleSpan);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Definition<'a>(pub &'a str);

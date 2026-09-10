@@ -3,7 +3,7 @@ use super::token::{label_ref, offset, register};
 
 use crate::language::{
     instruction::*,
-    token::{Immediate, Offset},
+    token::{Immediate, Offset, Reference},
 };
 
 pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
@@ -61,9 +61,12 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
             Immediate::Value(n << 20 >> 20),
         )
     });
-    let equ = text::ident()
-        .inline()
-        .map(|s| (Immediate::EquUpper(s), Immediate::Equ12(s)));
+    let equ = text::ident().inline().map_with(|s, ext| {
+        (
+            Immediate::EquUpper(Reference(s, ext.span())),
+            Immediate::Equ12(Reference(s, ext.span())),
+        )
+    });
 
     just("li")
         .name_then(register())

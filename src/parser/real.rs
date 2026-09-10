@@ -174,7 +174,7 @@ mod tests {
                 name: IType::Andi,
                 rd: 0,
                 rs: 1,
-                imm: Immediate::Lower(Reference("label"))
+                imm: Immediate::Lower(Reference("label", SimpleSpan::from(17..22)))
             }
         );
         let result = real_instructions().parse("addi x0, x1, 2");
@@ -216,7 +216,7 @@ mod tests {
                 name: BType::Beq,
                 rs1: 0,
                 rs2: 1,
-                offset: Offset::Label(Reference("offset"))
+                offset: Offset::Label(Reference("offset", SimpleSpan::from(12..18)))
             }
         );
         let result = real_instructions().parse("beq x0, x1, 42");

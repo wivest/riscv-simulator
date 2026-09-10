@@ -6,8 +6,8 @@ use crate::parser::common::*;
 
 pub fn label_ref<'src>() -> impl StrParser<'src, Reference<'src>> {
     text::ascii::ident()
+        .map_with(|label: &str, ext| Reference(label, ext.span()))
         .inline()
-        .map(|label: &str| Reference(label))
         .map_err(|e| {
             Rich::custom(
                 *e.span(),
@@ -37,11 +37,14 @@ mod tests {
     #[test]
     fn test_reference() {
         let result = label_ref().parse("label");
-        assert_eq!(result.unwrap(), Reference("label"));
+        assert_eq!(result.unwrap(), Reference("label", SimpleSpan::from(0..5)));
         let result = label_ref().parse("  label \t");
-        assert_eq!(result.unwrap(), Reference("label"));
+        assert_eq!(result.unwrap(), Reference("label", SimpleSpan::from(2..7)));
         let result = label_ref().parse("__4lphanuM");
-        assert_eq!(result.unwrap(), Reference("__4lphanuM"));
+        assert_eq!(
+            result.unwrap(),
+            Reference("__4lphanuM", SimpleSpan::from(0..10))
+        );
         let result = label_ref().parse("42");
         assert_eq!(result.has_errors(), true);
         let result = label_ref().parse("label:");
