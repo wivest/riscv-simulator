@@ -44,9 +44,9 @@ fn asciz<'src>() -> impl StrParser<'src, Directive> {
 
 fn symbol<'src>(b: usize) -> impl StrParser<'src, Vec<Byte>> {
     text::ascii::ident()
-        .map(move |s: &'src str| {
+        .map_with(move |s: &'src str, ext| {
             (0..b)
-                .map(|i| Byte::Address(i as u32, s.to_owned()))
+                .map(|i| Byte::Address(i as u32, s.to_owned(), ext.span()))
                 .collect()
         })
         .inline()
@@ -156,7 +156,7 @@ mod tests {
         let result = aligned::<4>(".word").parse(".word 0x42cafe, name");
         let mut expected = to_vec(vec![0xfe, 0xca, 0x42, 0x00]);
         let sym: Vec<Byte> = (0..4)
-            .map(|i| Byte::Address(i, "name".to_owned()))
+            .map(|i| Byte::Address(i, "name".to_owned(), SimpleSpan::from(0..0)))
             .collect();
         expected.extend(sym);
         assert_eq!(result.unwrap(), Directive::Aligned(4, expected));
@@ -164,7 +164,7 @@ mod tests {
         let result = unaligned::<2>(".2byte").parse(".2byte 0xcafe, name");
         let mut expected = to_vec(vec![0xfe, 0xca]);
         let sym: Vec<Byte> = (0..2)
-            .map(|i| Byte::Address(i, "name".to_owned()))
+            .map(|i| Byte::Address(i, "name".to_owned(), SimpleSpan::from(0..0)))
             .collect();
         expected.extend(sym);
         assert_eq!(result.unwrap(), Directive::Unaligned(expected));

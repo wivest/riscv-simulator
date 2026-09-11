@@ -1,27 +1,27 @@
 use crate::parser::common::*;
 
 pub fn register<'src>() -> impl StrParser<'src, u32> {
-    let index = just("x").ignore_then(digits(10)).filter(|n| *n <= 31);
+    let index = just("x").ignore_then(int()).filter(|n| *n <= 31);
 
-    let zero = just("zero").map(|_| 0);
-    let ra = just("ra").map(|_| 1);
-    let sp = just("sp").map(|_| 2);
-    let gp = just("gp").map(|_| 3);
-    let tp = just("tp").map(|_| 4);
-    let fp = just("fp").map(|_| 8);
+    let zero = just("zero").to(0);
+    let ra = just("ra").to(1);
+    let sp = just("sp").to(2);
+    let gp = just("gp").to(3);
+    let tp = just("tp").to(4);
+    let fp = just("fp").to(8);
 
     let temporary = just("t")
-        .ignore_then(digits(10))
+        .ignore_then(int())
         .filter(|n| *n <= 6)
         .map(|n| if n <= 2 { n + 5 } else { n + 25 });
 
     let saved = just("s")
-        .ignore_then(digits(10))
+        .ignore_then(int())
         .filter(|n| *n <= 11)
         .map(|n| if n <= 1 { n + 8 } else { n + 16 });
 
     let argument = just("a")
-        .ignore_then(digits(10))
+        .ignore_then(int())
         .filter(|n| *n <= 7)
         .map(|n| n + 10);
 
@@ -39,6 +39,8 @@ mod tests {
     fn test_register_x() {
         let result = register().parse("x10");
         assert_eq!(result.unwrap(), 10);
+        let result = register().parse("x01");
+        assert_eq!(result.has_errors(), true);
     }
 
     #[test]

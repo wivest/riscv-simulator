@@ -1,7 +1,9 @@
+use chumsky::span::SimpleSpan;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Byte {
     Value(u8),
-    Address(u32, String),
+    Address(u32, String, SimpleSpan),
 }
 
 #[derive(Debug, PartialEq, Clone)]

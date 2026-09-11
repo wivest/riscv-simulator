@@ -13,7 +13,7 @@ use std::collections::HashMap;
 pub struct Linker<'src> {
     defs: HashMap<Definition<'src>, u32>,
     memory: HashMap<u32, Word<Immediate<'src>, Offset<'src>>>,
-    links: Vec<(u32, u32, String)>,
+    links: Vec<(u32, u32, String, SimpleSpan)>,
     equs: HashMap<String, u32>,
 }
 
@@ -60,10 +60,17 @@ impl<'src> Linker<'src> {
 
         let mut mem = Memory::from(result?);
         let mut errs = Vec::new();
-        for (at, b, link) in self.links {
+        for (at, b, link, span) in self.links {
             match self.defs.get(&Definition(&link)) {
                 Some(&addr) => mem.set(at, addr.to_le_bytes()[b as usize]),
-                None => errs.push(Rich::custom(SimpleSpan::from(0..0), format!("{link}"))),
+                None => {
+                    if b == 0 {
+                        errs.push(Rich::custom(
+                            span,
+                            format!("unknown label, define \"{link}:\""),
+                        ))
+                    }
+                }
             };
         }
         if errs.is_empty() { Ok(mem) } else { Err(errs) }
@@ -78,18 +85,16 @@ pub fn link_instr<'a>(
 ) -> Result<Instruction<i32, i32>, Rich<'a, char>> {
     let resolve = |l, span| match defs.get(&Definition(l)) {
         Some(&value) => Ok(value as i32),
-        None => {
-            return Err(Rich::custom(
-                span,
-                format!("Unknown label, define \"{l}:\""),
-            ));
-        }
+        None => Err(Rich::custom(
+            span,
+            format!("unknown label, define \"{l}:\""),
+        )),
     };
     let load_const = |s, span| match equs.get(s) {
         Some(&c) => Ok(c as i32),
         None => Err(Rich::custom(
             span,
-            format!("Unknown identifier, define \".equ {s}, <value>\""),
+            format!("unknown identifier, define \".equ {s}, <value>\""),
         )),
     };
     let resolve_rel = |l, span| Ok::<i32, Rich<'a, char>>(resolve(l, span)? - addr as i32);

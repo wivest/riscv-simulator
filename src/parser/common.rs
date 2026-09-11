@@ -1,10 +1,14 @@
 pub use super::StrParser;
 pub use chumsky::prelude::*;
 
+pub fn int<'src>() -> impl StrParser<'src, u64> {
+    text::int(10).map(|s| u64::from_str_radix(s, 10).unwrap())
+}
+
 pub fn digits<'src>(radix: u32) -> impl StrParser<'src, u64> {
     text::digits(radix)
         .to_slice()
-        .map(move |s: &'src str| u64::from_str_radix(s, radix).unwrap())
+        .map(move |n| u64::from_str_radix(n, radix).unwrap())
 }
 
 fn char<'src>() -> impl StrParser<'src, i64> {
@@ -17,10 +21,18 @@ fn char<'src>() -> impl StrParser<'src, i64> {
 
 fn number_radix<'src>(radix: u32, bits: u32) -> impl StrParser<'src, i64> {
     digits(radix)
-        .filter(move |n| 64 - n.leading_zeros() <= bits)
-        .map(move |n| (n << (64 - bits)) as i64 >> (64 - bits))
+        .validate(move |n, ext, emitter| {
+            if 64 - n.leading_zeros() <= bits {
+                (n << (64 - bits)) as i64 >> (64 - bits)
+            } else {
+                emitter.emit(Rich::custom(
+                    ext.span(),
+                    format!("expected number of {bits} bits"),
+                ));
+                0
+            }
+        })
         .inline()
-        .map_err(move |e| Rich::custom(*e.span(), format!("expected number of {} bits", bits)))
 }
 
 pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl StrParser<'src, [u8; N]> {
@@ -82,6 +94,14 @@ pub fn comment<'src>() -> impl StrParser<'src, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_int() {
+        let result = digits(10).parse("10");
+        assert_eq!(result.unwrap(), 10);
+        let result = digits(10).parse("01");
+        assert_eq!(result.has_errors(), true);
+    }
 
     #[test]
     fn test_digits() {

@@ -1,5 +1,5 @@
 use crate::language::{instruction::Instruction, token::Definition, word::Word};
-
+use chumsky::span::SimpleSpan;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub struct Section<'src, I, O> {
     pub pc: u32,
     pub defs: HashMap<Definition<'src>, u32>,
     pub content: HashMap<u32, Word<I, O>>,
-    pub links: Vec<(u32, u32, String)>,
+    pub links: Vec<(u32, u32, String, SimpleSpan)>,
     pub equs: HashMap<String, u32>,
 }
 

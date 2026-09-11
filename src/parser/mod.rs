@@ -61,10 +61,12 @@ fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
     let comments = common::comment().map(|_| Line::Empty);
     let line = choice((labels, real_ins, pseudo_ins, dirs, comments));
 
-    line.padded()
-        .recover_with(skip_then_retry_until(any().ignored(), just('\n').ignored()))
-        .repeated()
-        .collect::<Vec<_>>()
+    (text::inline_whitespace()
+        .ignore_then(line)
+        .then_ignore(text::whitespace().at_least(1)))
+    .recover_with(skip_then_retry_until(any().ignored(), just('\n').ignored()))
+    .repeated()
+    .collect::<Vec<_>>()
 }
 
 pub fn program<'src>((t, d, r, b): (u32, u32, u32, u32)) -> impl StrParser<'src, Program<'src>> {
@@ -120,7 +122,7 @@ fn process_directive<'src>(
         for b in bytes {
             match b {
                 Byte::Value(b) => curr.set(curr.pc, b),
-                Byte::Address(i, link) => curr.links.push((curr.pc, i, link)),
+                Byte::Address(i, link, span) => curr.links.push((curr.pc, i, link, span)),
             }
             curr.pc += 1;
         }

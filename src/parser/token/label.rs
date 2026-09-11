@@ -7,13 +7,8 @@ use crate::parser::common::*;
 pub fn label_ref<'src>() -> impl StrParser<'src, Reference<'src>> {
     text::ascii::ident()
         .map_with(|label: &str, ext| Reference(label, ext.span()))
+        .map_err_with_state(|_, span, _| Rich::custom(span, String::from("expected symbol")))
         .inline()
-        .map_err(|e| {
-            Rich::custom(
-                *e.span(),
-                format!("expected symbol, found {}", e.found().unwrap_or(&'_')),
-            )
-        })
 }
 
 pub fn label_def<'src>() -> impl StrParser<'src, Definition<'src>> {
@@ -26,7 +21,7 @@ pub fn label_def<'src>() -> impl StrParser<'src, Definition<'src>> {
         .map(|label: &str| Definition(label))
         .map_err(|e| match *e.reason() {
             RichReason::Custom(_) => e,
-            _ => Rich::custom(*e.span(), "expected label definition"),
+            _ => Rich::custom(*e.span(), "invalid label definition"),
         })
 }
 
