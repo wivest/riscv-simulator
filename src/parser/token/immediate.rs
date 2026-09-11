@@ -11,7 +11,7 @@ pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .map(|label| Immediate::Lower(label));
     let equ = text::ident().map_with(|s, ext| Immediate::Equ12(Reference(s, ext.span())));
 
-    choice((imm, lower, equ)).inline()
+    choice((imm, lower, equ))
 }
 
 pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
@@ -22,13 +22,13 @@ pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .map(|label| Immediate::Upper(label));
     let equ = text::ident().map_with(|s, ext| Immediate::Equ20(Reference(s, ext.span())));
 
-    choice((imm, lower, equ)).inline()
+    choice((imm, lower, equ))
 }
 
 pub fn offset<'src>(bits: u32) -> impl StrParser<'src, Offset<'src>> {
     let imm = number(bits, i32::from_le_bytes).map(|imm| Offset::Value(imm));
     let label = label_ref().map(|label| Offset::Label(label));
-    choice((imm, label)).inline()
+    choice((imm, label))
 }
 
 #[cfg(test)]

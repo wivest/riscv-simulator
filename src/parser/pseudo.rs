@@ -9,8 +9,7 @@ use crate::language::{
 pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("mv")
         .name_then(register())
-        .then_ignore(just(","))
-        .then(register())
+        .then_arg(register())
         .map(|(rd, rs)| {
             vec![Instruction::IType {
                 name: IType::Addi,
@@ -25,8 +24,7 @@ pub fn mv<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("neg")
         .name_then(register())
-        .then_ignore(just(","))
-        .then(register())
+        .then_arg(register())
         .map(|(rd, rs2)| {
             vec![Instruction::RType {
                 name: RType::Sub,
@@ -41,8 +39,7 @@ pub fn neg<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 pub fn not<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("not")
         .name_then(register())
-        .then_ignore(just(","))
-        .then(register())
+        .then_arg(register())
         .map(|(rd, rs)| {
             vec![Instruction::IType {
                 name: IType::Xori,
@@ -61,7 +58,7 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
             Immediate::Value(n << 20 >> 20),
         )
     });
-    let equ = text::ident().inline().map_with(|s, ext| {
+    let equ = text::ident().map_with(|s, ext| {
         (
             Immediate::EquUpper(Reference(s, ext.span())),
             Immediate::Equ12(Reference(s, ext.span())),
@@ -70,8 +67,7 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 
     just("li")
         .name_then(register())
-        .then_ignore(just(","))
-        .then(choice((num, equ)))
+        .then_arg(choice((num, equ)))
         .map(move |(rd, (upp, low))| {
             vec![
                 Instruction::UType {
@@ -92,8 +88,7 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
 pub fn la<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("la")
         .name_then(register())
-        .then_ignore(just(","))
-        .then(label_ref())
+        .then_arg(label_ref())
         .map(move |(rd, label)| {
             vec![
                 Instruction::UType {
@@ -180,9 +175,8 @@ pub fn jal<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 // branch
 pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("beqz")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
                 name: BType::Beq,
@@ -195,9 +189,8 @@ pub fn beqz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bnez")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
                 name: BType::Bne,
@@ -210,9 +203,8 @@ pub fn bnez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bltz")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
                 name: BType::Blt,
@@ -225,11 +217,9 @@ pub fn bltz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgt")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(register())
+        .then_arg(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
                 name: BType::Blt,
@@ -242,11 +232,9 @@ pub fn bgt<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 
 pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgtu")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(register())
+        .then_arg(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
                 name: BType::Bltu,
@@ -259,9 +247,8 @@ pub fn bgtu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bgtz")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs2, offset)| {
             vec![Instruction::BType {
                 name: BType::Blt,
@@ -274,11 +261,9 @@ pub fn bgtz<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("ble")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(register())
+        .then_arg(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
                 name: BType::Bge,
@@ -291,11 +276,9 @@ pub fn ble<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offs
 
 pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("bleu")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(register())
+        .then_arg(offset(12))
         .map(|((rs1, rs2), offset)| {
             vec![Instruction::BType {
                 name: BType::Bgeu,
@@ -308,9 +291,8 @@ pub fn bleu<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("blez")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs2, offset)| {
             vec![Instruction::BType {
                 name: BType::Bge,
@@ -323,9 +305,8 @@ pub fn blez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Off
 
 pub fn bgez<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offset<'src>>>> {
     just("beqz")
-        .ignore_then(register())
-        .then_ignore(just(","))
-        .then(offset(12))
+        .name_then(register())
+        .then_arg(offset(12))
         .map(|(rs1, offset)| {
             vec![Instruction::BType {
                 name: BType::Beq,

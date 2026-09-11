@@ -27,7 +27,6 @@ pub fn register<'src>() -> impl StrParser<'src, u32> {
 
     choice((index, zero, ra, sp, gp, tp, fp, temporary, saved, argument))
         .map(|n| n as u32)
-        .inline()
         .map_err(|e| Rich::custom(*e.span(), "expected register"))
 }
 

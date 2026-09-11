@@ -20,19 +20,17 @@ fn char<'src>() -> impl StrParser<'src, i64> {
 }
 
 fn number_radix<'src>(radix: u32, bits: u32) -> impl StrParser<'src, i64> {
-    digits(radix)
-        .validate(move |n, ext, emitter| {
-            if 64 - n.leading_zeros() <= bits {
-                (n << (64 - bits)) as i64 >> (64 - bits)
-            } else {
-                emitter.emit(Rich::custom(
-                    ext.span(),
-                    format!("expected number of {bits} bits"),
-                ));
-                0
-            }
-        })
-        .inline()
+    digits(radix).validate(move |n, ext, emitter| {
+        if 64 - n.leading_zeros() <= bits {
+            (n << (64 - bits)) as i64 >> (64 - bits)
+        } else {
+            emitter.emit(Rich::custom(
+                ext.span(),
+                format!("expected number of {bits} bits"),
+            ));
+            0
+        }
+    })
 }
 
 pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl StrParser<'src, [u8; N]> {
@@ -49,7 +47,6 @@ pub fn number_le_bytes<'src, const N: usize>(bits: u32) -> impl StrParser<'src, 
 
     choice((bin, oct, hex, dec, char())) // dec must come AFTER prefixed
         .map(move |n| n.to_le_bytes()[..N].try_into().unwrap())
-        .inline()
 }
 
 pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
@@ -60,8 +57,11 @@ pub fn number<'src, O, const N: usize, F: Fn([u8; N]) -> O>(
 }
 
 pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
-    fn inline(self) -> impl StrParser<'src, O> {
-        self.padded_by(text::inline_whitespace())
+    fn space(self) -> impl StrParser<'src, O> {
+        self.then_ignore(text::inline_whitespace())
+    }
+    fn space_lf(self) -> impl StrParser<'src, O> {
+        self.then_ignore(text::whitespace().at_least(1))
     }
 
     fn name_then<A, P: StrParser<'src, A>>(self, next: P) -> impl StrParser<'src, A> {
@@ -70,11 +70,16 @@ pub trait Extended<'src, O>: StrParser<'src, O> + Sized {
     }
 
     fn then_arg<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
-        self.then_ignore(just(',')).then(arg)
+        self.then_ignore(comma()).then(arg)
     }
 
     fn index<OA, A: StrParser<'src, OA>>(self, arg: A) -> impl StrParser<'src, (O, OA)> {
-        self.then_ignore(just('(')).then(arg).then_ignore(just(')'))
+        self.space()
+            .then_ignore(just('('))
+            .space()
+            .then(arg)
+            .space()
+            .then_ignore(just(')'))
     }
 }
 
@@ -91,15 +96,19 @@ pub fn comment<'src>() -> impl StrParser<'src, ()> {
         .map_err(|e: Rich<'_, char>| Rich::custom(*e.span(), "expected comment"))
 }
 
+pub fn comma<'src>() -> impl StrParser<'src, ()> {
+    empty().space().then_ignore(just(',')).space()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_int() {
-        let result = digits(10).parse("10");
+        let result = int().parse("10");
         assert_eq!(result.unwrap(), 10);
-        let result = digits(10).parse("01");
+        let result = int().parse("01");
         assert_eq!(result.has_errors(), true);
     }
 
@@ -170,11 +179,14 @@ mod tests {
     }
 
     #[test]
-    fn test_inline() {
-        let result = just("just").inline().parse(" \njust\n ");
+    fn test_space() {
+        let result = just("just").space().parse(" \njust\n ");
         assert_eq!(result.has_errors(), true);
-        let result = just("just").inline().parse("  just \t");
-        assert_eq!(result.has_output(), true);
+        let result = just("just").space().parse("just \t");
         assert_eq!(result.unwrap(), "just");
+        let result = just("just").space_lf().parse("just \n");
+        assert_eq!(result.unwrap(), "just");
+        let result = just("just").space_lf().parse("just");
+        assert_eq!(result.has_errors(), true);
     }
 }
