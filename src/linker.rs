@@ -2,7 +2,7 @@ use chumsky::{error::Rich, span::SimpleSpan};
 
 use crate::language::{
     instruction::Instruction::{self, *},
-    token::{Definition, Immediate, Offset, Reference},
+    token::{Immediate, Label, Offset, Reference},
     word::Word,
 };
 
@@ -11,9 +11,9 @@ use crate::processor::memory::Memory;
 use std::collections::HashMap;
 
 pub struct Linker<'src> {
-    defs: HashMap<Definition<'src>, u32>,
+    defs: HashMap<Label<'src>, u32>,
     memory: HashMap<u32, Word<Immediate<'src>, Offset<'src>>>,
-    links: Vec<(u32, u32, String, SimpleSpan)>,
+    links: Vec<(u32, u32, Label<'src>, SimpleSpan)>,
     equs: HashMap<String, u32>,
 }
 
@@ -27,20 +27,33 @@ impl<'src> Linker<'src> {
         }
     }
 
-    pub fn import_section(&mut self, sect: Section<'src, Immediate<'src>, Offset<'src>>) {
+    pub fn import_section(
+        &mut self,
+        sect: Section<'src, Immediate<'src>, Offset<'src>>,
+    ) -> Result<(), Vec<Rich<'src, char>>> {
         for (at, word) in sect.content {
             self.memory.insert(sect.base / 4 + at, word);
         }
+
+        let mut errs = Vec::new();
         for (def, at) in sect.defs {
-            self.defs.insert(def, sect.base / 4 + at);
+            match self.defs.insert(def.0, sect.base / 4 + at) {
+                Some(_) => errs.push(Rich::custom(def.1, format!("duplicate label"))),
+                None => (),
+            }
         }
+        if !errs.is_empty() {
+            return Err(errs);
+        }
+
         self.links.extend(sect.links);
         self.equs.extend(sect.equs);
+        Ok(())
     }
 
-    pub fn link<'a>(self) -> Result<Memory<i32, i32>, Vec<Rich<'a, char>>> {
+    pub fn link(self) -> Result<Memory<i32, i32>, Vec<Rich<'src, char>>> {
         let mut oks = HashMap::new();
-        let mut errs = Vec::<Rich<'a, char>>::new();
+        let mut errs = Vec::new();
 
         for (div4, word) in self.memory {
             let word = match word {
@@ -61,7 +74,7 @@ impl<'src> Linker<'src> {
         let mut mem = Memory::from(result?);
         let mut errs = Vec::new();
         for (at, b, link, span) in self.links {
-            match self.defs.get(&Definition(&link)) {
+            match self.defs.get(&link) {
                 Some(&addr) => mem.set(at, addr.to_le_bytes()[b as usize]),
                 None => {
                     if b == 0 {
@@ -77,13 +90,13 @@ impl<'src> Linker<'src> {
     }
 }
 
-pub fn link_instr<'a>(
+pub fn link_instr<'src>(
     instr: Instruction<Immediate, Offset>,
     addr: u32,
-    defs: &HashMap<Definition, u32>,
+    defs: &HashMap<Label<'src>, u32>,
     equs: &HashMap<String, u32>,
-) -> Result<Instruction<i32, i32>, Rich<'a, char>> {
-    let resolve = |l, span| match defs.get(&Definition(l)) {
+) -> Result<Instruction<i32, i32>, Rich<'src, char>> {
+    let resolve = |l, span| match defs.get(&l) {
         Some(&value) => Ok(value as i32),
         None => Err(Rich::custom(
             span,
@@ -97,22 +110,22 @@ pub fn link_instr<'a>(
             format!("unknown identifier, define \".equ {s}, <value>\""),
         )),
     };
-    let resolve_rel = |l, span| Ok::<i32, Rich<'a, char>>(resolve(l, span)? - addr as i32);
+    let resolve_rel = |l, span| Ok::<i32, Rich<'src, char>>(resolve(l, span)? - addr as i32);
 
     let calc_offset = |offset| match offset {
         Offset::Label(Reference(l, span)) => resolve_rel(l, span),
         Offset::Value(v) => Ok(v),
     };
     let calc_imm = |imm| match imm {
-        Immediate::Value(v) => Ok::<i32, Rich<'a, char>>(v),
+        Immediate::Value(v) => Ok::<i32, Rich<'src, char>>(v),
         Immediate::Upper(Reference(l, s)) => Ok(resolve(l, s)? >> 12),
         Immediate::UpperPseudo(Reference(l, s)) => Ok((resolve(l, s)? + 0x800) >> 12),
         Immediate::Lower(Reference(l, s)) => Ok(resolve(l, s)? << 20 >> 20),
         Immediate::PcrelHi(Reference(l, s)) => Ok(resolve_rel(l, s)? + 0x800 >> 12),
         Immediate::PcrelLo(Reference(l, s)) => Ok((resolve_rel(l, s)? << 20 >> 20) + 4), // +4 only comes from call/tail (change?)
-        Immediate::EquUpper(Reference(l, s)) => Ok((load_const(l, s)? + 0x800) >> 12),
-        Immediate::Equ20(Reference(l, s)) => Ok(load_const(l, s)? << 12 >> 12),
-        Immediate::Equ12(Reference(l, s)) => Ok(load_const(l, s)? << 20 >> 20),
+        Immediate::EquUpper(Reference(Label(l), s)) => Ok((load_const(l, s)? + 0x800) >> 12),
+        Immediate::Equ20(Reference(Label(l), s)) => Ok(load_const(l, s)? << 12 >> 12),
+        Immediate::Equ12(Reference(Label(l), s)) => Ok(load_const(l, s)? << 20 >> 20),
     };
 
     Ok(match instr {

@@ -1,6 +1,7 @@
 use super::common::*;
 use super::token::{label_ref, offset, register};
 
+use crate::language::token::Label;
 use crate::language::{
     instruction::*,
     token::{Immediate, Offset, Reference},
@@ -60,8 +61,8 @@ pub fn li<'src>() -> impl StrParser<'src, Vec<Instruction<Immediate<'src>, Offse
     });
     let equ = text::ident().map_with(|s, ext| {
         (
-            Immediate::EquUpper(Reference(s, ext.span())),
-            Immediate::Equ12(Reference(s, ext.span())),
+            Immediate::EquUpper(Reference(Label(s), ext.span())),
+            Immediate::Equ12(Reference(Label(s), ext.span())),
         )
     });
 

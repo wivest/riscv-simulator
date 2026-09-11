@@ -1,6 +1,6 @@
 use super::label_ref;
 
-use crate::language::token::{Immediate, Offset, Reference};
+use crate::language::token::{Immediate, Label, Offset, Reference};
 use crate::parser::common::*;
 
 pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
@@ -9,7 +9,7 @@ pub fn immediate12<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Lower(label));
-    let equ = text::ident().map_with(|s, ext| Immediate::Equ12(Reference(s, ext.span())));
+    let equ = text::ident().map_with(|s, ext| Immediate::Equ12(Reference(Label(s), ext.span())));
 
     choice((imm, lower, equ))
 }
@@ -20,7 +20,7 @@ pub fn immediate20<'src>() -> impl StrParser<'src, Immediate<'src>> {
         .ignore_then(label_ref())
         .then_ignore(just(")"))
         .map(|label| Immediate::Upper(label));
-    let equ = text::ident().map_with(|s, ext| Immediate::Equ20(Reference(s, ext.span())));
+    let equ = text::ident().map_with(|s, ext| Immediate::Equ20(Reference(Label(s), ext.span())));
 
     choice((imm, lower, equ))
 }
@@ -50,7 +50,7 @@ mod tests {
         let result = immediate12().parse("%lo(name)");
         assert_eq!(
             result.unwrap(),
-            Immediate::Lower(Reference("name", SimpleSpan::from(4..8)))
+            Immediate::Lower(Reference(Label("name"), SimpleSpan::from(4..8)))
         );
     }
 
@@ -67,7 +67,7 @@ mod tests {
         let result = immediate20().parse("%hi(name)");
         assert_eq!(
             result.unwrap(),
-            Immediate::Upper(Reference("name", SimpleSpan::from(4..8)))
+            Immediate::Upper(Reference(Label("name"), SimpleSpan::from(4..8)))
         );
     }
 
@@ -84,7 +84,7 @@ mod tests {
         let result = offset(12).parse("name");
         assert_eq!(
             result.unwrap(),
-            Offset::Label(Reference("name", SimpleSpan::from(0..4)))
+            Offset::Label(Reference(Label("name"), SimpleSpan::from(0..4)))
         );
     }
 }

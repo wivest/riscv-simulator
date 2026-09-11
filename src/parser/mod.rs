@@ -1,7 +1,7 @@
 use crate::language::{
     directive::{Byte, Directive, SectionName},
     instruction::*,
-    token::{Definition, Immediate, Offset},
+    token::{Definition, Immediate, Label, Offset},
 };
 
 use chumsky::prelude::*;
@@ -27,11 +27,11 @@ type E<'src> = extra::Err<Rich<'src, char>>;
 pub trait StrParser<'src, O>: Parser<'src, &'src str, O, E<'src>> {}
 impl<'src, O, P> StrParser<'src, O> for P where P: Parser<'src, &'src str, O, E<'src>> {}
 
-pub enum Line<'a> {
-    Instruction(Instruction<Immediate<'a>, Offset<'a>>),
-    Pseudo(Vec<Instruction<Immediate<'a>, Offset<'a>>>),
-    Label(Definition<'a>),
-    Directive(Directive),
+pub enum Line<'src> {
+    Instruction(Instruction<Immediate<'src>, Offset<'src>>),
+    Pseudo(Vec<Instruction<Immediate<'src>, Offset<'src>>>),
+    Label(Definition<'src>),
+    Directive(Directive<'src>),
     Empty,
 }
 
@@ -114,15 +114,18 @@ fn process_line<'src>(
 }
 
 fn process_directive<'src>(
-    dir: Directive,
+    dir: Directive<'src>,
     curr: &mut Section<'src, Immediate<'src>, Offset<'src>>,
     active: &mut SectionName,
 ) {
-    fn set_bytes(bytes: Vec<Byte>, curr: &mut Section<'_, Immediate<'_>, Offset<'_>>) {
+    fn set_bytes<'src>(
+        bytes: Vec<Byte<'src>>,
+        curr: &mut Section<'src, Immediate<'src>, Offset<'src>>,
+    ) {
         for b in bytes {
             match b {
                 Byte::Value(b) => curr.set(curr.pc, b),
-                Byte::Address(i, link, span) => curr.links.push((curr.pc, i, link, span)),
+                Byte::Address(i, link, span) => curr.links.push((curr.pc, i, Label(link), span)),
             }
             curr.pc += 1;
         }

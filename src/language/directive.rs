@@ -1,17 +1,17 @@
 use chumsky::span::SimpleSpan;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Byte {
+pub enum Byte<'src> {
     Value(u8),
-    Address(u32, String, SimpleSpan),
+    Address(u32, &'src str, SimpleSpan),
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Directive {
+pub enum Directive<'src> {
     Org(u32),
     Equ(String, u32),
-    Unaligned(Vec<Byte>),
-    Aligned(u32, Vec<Byte>),
+    Unaligned(Vec<Byte<'src>>),
+    Aligned(u32, Vec<Byte<'src>>),
     Section(SectionName),
     Ignore,
 }

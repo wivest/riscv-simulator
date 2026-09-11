@@ -131,7 +131,7 @@ pub fn real_instructions<'src>() -> impl StrParser<'src, Instruction<Immediate<'
 
 #[cfg(test)]
 mod tests {
-    use crate::language::token::Reference;
+    use crate::language::token::{Label, Reference};
 
     use super::*;
 
@@ -174,7 +174,7 @@ mod tests {
                 name: IType::Andi,
                 rd: 0,
                 rs: 1,
-                imm: Immediate::Lower(Reference("label", SimpleSpan::from(17..22)))
+                imm: Immediate::Lower(Reference(Label("label"), SimpleSpan::from(17..22)))
             }
         );
         let result = real_instructions().parse("addi x0, x1, 2");
@@ -216,7 +216,7 @@ mod tests {
                 name: BType::Beq,
                 rs1: 0,
                 rs2: 1,
-                offset: Offset::Label(Reference("offset", SimpleSpan::from(12..18)))
+                offset: Offset::Label(Reference(Label("offset"), SimpleSpan::from(12..18)))
             }
         );
         let result = real_instructions().parse("beq x0, x1, 42");

@@ -21,7 +21,17 @@ pub enum Immediate<'a> {
 }
 
 // label
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Reference<'a>(pub &'a str, pub SimpleSpan);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Definition<'a>(pub &'a str);
+pub struct Label<'a>(pub &'a str);
+
+impl<'a> std::fmt::Display for Label<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Reference<'a>(pub Label<'a>, pub SimpleSpan);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Definition<'a>(pub Label<'a>, pub SimpleSpan);

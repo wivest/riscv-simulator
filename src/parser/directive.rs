@@ -2,20 +2,20 @@ use super::common::*;
 
 use crate::language::directive::{Byte, Directive, SectionName};
 
-fn org<'src>() -> impl StrParser<'src, Directive> {
+fn org<'src>() -> impl StrParser<'src, Directive<'src>> {
     just(".org")
         .name_then(number(32, u32::from_le_bytes))
         .map(|at: u32| Directive::Org(at))
 }
 
-fn equ<'src>() -> impl StrParser<'src, Directive> {
+fn equ<'src>() -> impl StrParser<'src, Directive<'src>> {
     just(".equ")
         .name_then(text::ident())
         .then_arg(number(32, u32::from_le_bytes))
         .map(|(s, v)| Directive::Equ(s.to_owned(), v))
 }
 
-fn ascii<'src>() -> impl StrParser<'src, Directive> {
+fn ascii<'src>() -> impl StrParser<'src, Directive<'src>> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
         .then_ignore(just('"'));
@@ -25,7 +25,7 @@ fn ascii<'src>() -> impl StrParser<'src, Directive> {
         .map(|s: String| Directive::Unaligned(s.bytes().map(|b| Byte::Value(b)).collect()))
 }
 
-fn asciz<'src>() -> impl StrParser<'src, Directive> {
+fn asciz<'src>() -> impl StrParser<'src, Directive<'src>> {
     let string = just('"')
         .ignore_then(none_of('"').repeated().collect())
         .then_ignore(just('"'));
@@ -42,37 +42,37 @@ fn asciz<'src>() -> impl StrParser<'src, Directive> {
         })
 }
 
-fn symbol<'src>(b: usize) -> impl StrParser<'src, Vec<Byte>> {
+fn symbol<'src>(b: usize) -> impl StrParser<'src, Vec<Byte<'src>>> {
     text::ascii::ident().map_with(move |s: &'src str, ext| {
         (0..b)
-            .map(|i| Byte::Address(i as u32, s.to_owned(), ext.span()))
+            .map(|i| Byte::Address(i as u32, s, ext.span()))
             .collect()
     })
 }
 
-fn bytes<'src, const B: usize>() -> impl StrParser<'src, Vec<Byte>> {
+fn bytes<'src, const B: usize>() -> impl StrParser<'src, Vec<Byte<'src>>> {
     choice((
         symbol(B),
         number_le_bytes(B as u32 * 8).map(|n: [u8; B]| n.map(|b| Byte::Value(b)).to_vec()),
     ))
     .separated_by(comma())
     .collect()
-    .map(|v: Vec<Vec<Byte>>| v.into_iter().flatten().collect())
+    .map(|v: Vec<Vec<Byte<'src>>>| v.into_iter().flatten().collect())
 }
 
-fn unaligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive> {
+fn unaligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive<'src>> {
     just(dir)
         .name_then(bytes::<B>())
-        .map(|list: Vec<Byte>| Directive::Unaligned(list))
+        .map(|list: Vec<Byte<'src>>| Directive::Unaligned(list))
 }
 
-fn aligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive> {
+fn aligned<'src, const B: usize>(dir: &'src str) -> impl StrParser<'src, Directive<'src>> {
     just(dir)
         .name_then(bytes::<B>())
-        .map(|list: Vec<Byte>| Directive::Aligned(B as u32, list))
+        .map(|list: Vec<Byte<'src>>| Directive::Aligned(B as u32, list))
 }
 
-fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Directive> {
+fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Directive<'src>> {
     just(".section")
         .name_then(empty())
         .or_not()
@@ -81,13 +81,13 @@ fn section<'src>(sec: SectionName, name: &'src str) -> impl StrParser<'src, Dire
 }
 
 // ignores everything after a directive until newline
-fn ignore<'src>(name: &'src str) -> impl StrParser<'src, Directive> {
+fn ignore<'src>(name: &'src str) -> impl StrParser<'src, Directive<'src>> {
     just(name)
         .then(text::newline().not().then(any()).repeated())
         .to(Directive::Ignore)
 }
 
-pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
+pub fn dirs<'src>() -> impl StrParser<'src, Directive<'src>> {
     choice((
         org(),
         equ(),
@@ -118,7 +118,7 @@ pub fn dirs<'src>() -> impl StrParser<'src, Directive> {
 mod tests {
     use super::*;
 
-    fn to_vec(v: Vec<u8>) -> Vec<Byte> {
+    fn to_vec<'src>(v: Vec<u8>) -> Vec<Byte<'src>> {
         v.into_iter().map(|b| Byte::Value(b)).collect()
     }
 
@@ -154,7 +154,7 @@ mod tests {
         let result = aligned::<4>(".word").parse(".word 0x42cafe, name");
         let mut expected = to_vec(vec![0xfe, 0xca, 0x42, 0x00]);
         let sym: Vec<Byte> = (0..4)
-            .map(|i| Byte::Address(i, "name".to_owned(), SimpleSpan::from(16..20)))
+            .map(|i| Byte::Address(i, "name", SimpleSpan::from(16..20)))
             .collect();
         expected.extend(sym);
         assert_eq!(result.unwrap(), Directive::Aligned(4, expected));
@@ -162,7 +162,7 @@ mod tests {
         let result = unaligned::<2>(".2byte").parse(".2byte 0xcafe, name");
         let mut expected = to_vec(vec![0xfe, 0xca]);
         let sym: Vec<Byte> = (0..2)
-            .map(|i| Byte::Address(i, "name".to_owned(), SimpleSpan::from(15..19)))
+            .map(|i| Byte::Address(i, "name", SimpleSpan::from(15..19)))
             .collect();
         expected.extend(sym);
         assert_eq!(result.unwrap(), Directive::Unaligned(expected));

@@ -37,7 +37,7 @@ pub fn load<'a>(content: &'a String) -> Result<Processor, Vec<Rich<'a, char>>> {
 
     let mut linker = Linker::new();
     for sect in vec![program.text, program.data, program.rodata, program.bss] {
-        linker.import_section(sect);
+        linker.import_section(sect)?;
     }
     Ok(Processor::new(RESET, linker.link()?))
 }
