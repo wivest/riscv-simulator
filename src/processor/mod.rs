@@ -7,6 +7,8 @@ pub mod command;
 pub mod execute;
 pub mod memory;
 
+pub const RESET: u32 = 0x200;
+
 pub struct Processor {
     pub pc: u32,
     registers: [i32; 32],
@@ -34,6 +36,14 @@ impl Processor {
         if index != 0 {
             self.registers[index as usize] = value;
         };
+    }
+
+    pub fn get_memory(&self, addr: u32) -> Option<u8> {
+        self.memory.get(addr)
+    }
+
+    pub fn stdout(&self) -> String {
+        self.memory.flush()
     }
 
     pub fn execute(&mut self, command: Executable) {

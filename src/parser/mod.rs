@@ -61,12 +61,10 @@ fn lines<'src>() -> impl StrParser<'src, Vec<Line<'src>>> {
     let comments = common::comment().map(|_| Line::Empty);
     let line = choice((labels, real_ins, pseudo_ins, dirs, comments));
 
-    text::inline_whitespace()
-        .ignore_then(line)
-        .then_ignore(text::whitespace().at_least(1))
+    line.separated_by(text::whitespace().at_least(1))
+        .collect()
+        .padded()
         .recover_with(skip_then_retry_until(any().ignored(), just('\n').ignored()))
-        .repeated()
-        .collect::<Vec<_>>()
 }
 
 pub fn program<'src>((t, d, r, b): (u32, u32, u32, u32)) -> impl StrParser<'src, Program<'src>> {

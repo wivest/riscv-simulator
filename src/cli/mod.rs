@@ -1,11 +1,14 @@
 use chumsky::{Parser, error::Rich};
 use command::Command;
-use rvsim::{linker::Linker, parser, processor::Processor};
+use rvsim::{
+    linker::Linker,
+    parser,
+    processor::{Processor, RESET},
+};
 use std::io::Write;
 
 pub mod command;
 
-const RESET: u32 = 0x200;
 const HELP: &str = "USAGE:
     <command> [arg]
 
@@ -26,14 +29,9 @@ UTILITY & SYSTEM:
     quit, exit      Exit the simulator";
 
 pub fn load<'a>(content: &'a String) -> Result<Processor, Vec<Rich<'a, char>>> {
-    let result = parser::program((RESET, 0, 0, 0))
+    let program = parser::program((RESET, 0, 0, 0))
         .parse(&content)
-        .into_result();
-
-    let program = match result {
-        Ok(program) => program,
-        Err(errors) => return Err(errors),
-    };
+        .into_result()?;
 
     let mut linker = Linker::new();
     for sect in vec![program.text, program.data, program.rodata, program.bss] {
