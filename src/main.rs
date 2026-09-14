@@ -7,6 +7,13 @@ use std::{
 
 mod cli;
 
+const USAGE: &str = "RISC-V simulator
+
+Usage: rvsim <ARGUMENTS>
+
+Arguments:
+    <path>\tA path to the assembly file";
+
 fn open_file(path: &str) -> Result<String, Error> {
     let mut file = OpenOptions::new().read(true).open(path)?;
     let mut content = String::new();
@@ -15,13 +22,18 @@ fn open_file(path: &str) -> Result<String, Error> {
 }
 
 fn main() {
-    let path = std::env::args()
-        .nth(1)
-        .unwrap_or("examples/source.asm".to_owned());
-
-    let Ok(content) = open_file(&path) else {
-        println!("File error!");
+    let mut args = std::env::args().skip(1);
+    let (Some(path), None) = (args.next(), args.next()) else {
+        println!("{USAGE}");
         return;
+    };
+
+    let content = match open_file(&path) {
+        Ok(content) => content,
+        Err(err) => {
+            println!("{err}");
+            return;
+        }
     };
 
     match cli::load(&content) {
